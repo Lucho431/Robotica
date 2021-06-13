@@ -89,6 +89,13 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+  HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+
+  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_TIM_Base_Start_IT(&htim3);
+
+
 
   /* USER CODE END 2 */
 
@@ -96,6 +103,17 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  if (!HAL_GPIO_ReadPin(IN_ruedaL_GPIO_Port, IN_ruedaL_Pin)){
+		  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+	  }else{
+		  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+	  }
+
+	  if (HAL_GPIO_ReadPin(IN_ruedaR_GPIO_Port, IN_ruedaR_Pin)){
+		  HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
+	  }else{
+		  HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
