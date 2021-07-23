@@ -30,6 +30,18 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
+typedef enum{
+	QUIETO,
+	AVANZANDO,
+	RETROCEDIENDO,
+	ROTANDO_IZQ,
+	ROTANDO_DER,
+	PIVOTE_IZQ_AVAN,
+	PIVOTE_DER_AVAN,
+	PIVOTE_IZQ_RETR,
+	PIVOTE_DER_RETR,
+}T_MOV;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -44,6 +56,12 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+
+//variables de control
+T_MOV status_movimiento = QUIETO;
+uint8_t sensores_dist = 0;
+
+//variables
 
 /* USER CODE END PV */
 
@@ -89,12 +107,14 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-  HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+  HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
 
-  HAL_TIM_Base_Start_IT(&htim2);
-  HAL_TIM_Base_Start_IT(&htim3);
+  //HAL_TIM_Base_Start_IT(&htim2);
+  //HAL_TIM_Base_Start_IT(&htim3);
 
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 
 
   /* USER CODE END 2 */
@@ -103,17 +123,86 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (!HAL_GPIO_ReadPin(IN_ruedaL_GPIO_Port, IN_ruedaL_Pin)){
-		  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
-	  }else{
-		  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-	  }
+	  /*
+	  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+	  HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
+	  HAL_Delay(1000);
+	  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+	  HAL_Delay(1000);
+	  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+	  HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 1);
+	  HAL_Delay(1000);
+	  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+	  HAL_Delay(1000);
+	  */
 
-	  if (HAL_GPIO_ReadPin(IN_ruedaR_GPIO_Port, IN_ruedaR_Pin)){
-		  HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
-	  }else{
-		  HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
-	  }
+	  //TIM2->CCR1;
+
+	  sensores_dist = (HAL_GPIO_ReadPin(IN_sensorL_GPIO_Port, IN_sensorL_Pin)) << 0b01;
+	  sensores_dist += HAL_GPIO_ReadPin(IN_sensorR_GPIO_Port, IN_sensorR_Pin);
+
+	  switch (sensores_dist) {
+		case 0b0:
+			status_movimiento = AVANZANDO;
+		break;
+		case 0b10:
+		case 0b11:
+			status_movimiento = ROTANDO_DER;
+		break;
+		case 0b01:
+			status_movimiento = ROTANDO_IZQ;
+		default:
+		break;
+	} //fin switch sensopres_dist
+
+
+	  switch (status_movimiento) {
+		case QUIETO:
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+		break;
+		case AVANZANDO:
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+		break;
+		case ROTANDO_IZQ:
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+		break;
+		case ROTANDO_DER:
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
+		break;
+		case RETROCEDIENDO:
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
+		break;
+		case PIVOTE_IZQ_AVAN:
+
+		break;
+		case PIVOTE_DER_AVAN:
+
+		default:
+		break;
+	} //fin switch status_movimiento
+
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -160,6 +249,17 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+/*
+T_MOV sensores (void){
+
+	if (HAL_GPIO_ReadPin(IN_sensorL_GPIO_Port, IN_sensorL_Pin)){
+		if (HAL_GPIO_ReadPin(IN_sensorR_GPIO_Port, IN_sensorR_Pin)){
+
+		}
+	}
+}
+*/
 
 /* USER CODE END 4 */
 

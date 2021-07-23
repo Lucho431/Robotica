@@ -35,7 +35,7 @@ void MX_TIM2_Init(void)
   TIM_OC_InitTypeDef sConfigOC = {0};
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 6-1;
+  htim2.Init.Prescaler = 3-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 1000-1;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -53,14 +53,14 @@ void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_ENABLE;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 500-1;
+  sConfigOC.Pulse = 750-1;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
@@ -78,7 +78,7 @@ void MX_TIM3_Init(void)
   TIM_OC_InitTypeDef sConfigOC = {0};
 
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 6-1;
+  htim3.Init.Prescaler = 3-1;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 1000-1;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -103,7 +103,7 @@ void MX_TIM3_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 500-1;
+  sConfigOC.Pulse = 750-1;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)

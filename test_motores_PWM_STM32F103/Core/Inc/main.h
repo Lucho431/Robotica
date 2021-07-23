@@ -66,10 +66,10 @@ void Error_Handler(void);
 #define OUT_in3_GPIO_Port GPIOA
 #define OUT_in4_Pin GPIO_PIN_5
 #define OUT_in4_GPIO_Port GPIOA
-#define IN_ruedaL_Pin GPIO_PIN_3
-#define IN_ruedaL_GPIO_Port GPIOB
-#define IN_ruedaR_Pin GPIO_PIN_4
-#define IN_ruedaR_GPIO_Port GPIOB
+#define IN_sensorL_Pin GPIO_PIN_3
+#define IN_sensorL_GPIO_Port GPIOB
+#define IN_sensorR_Pin GPIO_PIN_4
+#define IN_sensorR_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
