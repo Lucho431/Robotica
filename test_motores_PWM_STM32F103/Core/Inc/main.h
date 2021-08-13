@@ -62,6 +62,10 @@ void Error_Handler(void);
 #define IN_sensorL_GPIO_Port GPIOA
 #define IN_sensorR_Pin GPIO_PIN_5
 #define IN_sensorR_GPIO_Port GPIOA
+#define PWM_R_Pin GPIO_PIN_6
+#define PWM_R_GPIO_Port GPIOA
+#define PWM_L_Pin GPIO_PIN_7
+#define PWM_L_GPIO_Port GPIOA
 #define OUT_in1_Pin GPIO_PIN_0
 #define OUT_in1_GPIO_Port GPIOB
 #define OUT_in2_Pin GPIO_PIN_1

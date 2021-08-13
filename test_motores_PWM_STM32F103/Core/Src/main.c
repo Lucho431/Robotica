@@ -143,11 +143,13 @@ int main(void)
 
 	  switch (sensores_dist) {
 		case 0b0:
-			status_movimiento = AVANZANDO;
+			status_movimiento = ROTANDO_DER;
 		break;
 		case 0b10:
-		case 0b11:
 			status_movimiento = ROTANDO_DER;
+		break;
+		case 0b11:
+			status_movimiento = AVANZANDO;
 		break;
 		case 0b01:
 			status_movimiento = ROTANDO_IZQ;
@@ -158,39 +160,39 @@ int main(void)
 
 	  switch (status_movimiento) {
 		case QUIETO:
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
 		break;
 		case AVANZANDO:
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
 		break;
 		case ROTANDO_IZQ:
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
-
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
-		break;
-		case ROTANDO_DER:
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
 
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
 		break;
-		case RETROCEDIENDO:
+		case ROTANDO_DER:
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
 
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+		break;
+		case RETROCEDIENDO:
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
 		break;
 		case PIVOTE_IZQ_AVAN:
 
