@@ -74,6 +74,8 @@ void Error_Handler(void);
 #define OUT_in3_GPIO_Port GPIOB
 #define OUT_in4_Pin GPIO_PIN_11
 #define OUT_in4_GPIO_Port GPIOB
+#define OUT_Trig_Pin GPIO_PIN_15
+#define OUT_Trig_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

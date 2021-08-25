@@ -59,6 +59,7 @@ typedef enum{
 
 //variables de control
 T_MOV status_movimiento = QUIETO;
+T_MOV last_movimiento = QUIETO;
 uint8_t sensores_dist = 0;
 
 //variables
@@ -106,6 +107,7 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
   HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
@@ -115,6 +117,8 @@ int main(void)
 
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+
+  HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
 
 
   /* USER CODE END 2 */
@@ -253,14 +257,42 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 /*
-T_MOV sensores (void){
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
+	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1){  // if the interrupt source is channel1
 
-	if (HAL_GPIO_ReadPin(IN_sensorL_GPIO_Port, IN_sensorL_Pin)){
-		if (HAL_GPIO_ReadPin(IN_sensorR_GPIO_Port, IN_sensorR_Pin)){
+		if (Is_First_Captured==0){ // if the first value is not captured
 
+			IC_Val1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1); // read the first value
+			Is_First_Captured = 1;  // set the first captured as true
+			// Now change the polarity to falling edge
+			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
+		}
+
+		else if (Is_First_Captured==1){  // if the first is already captured
+
+			IC_Val2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);  // read second value
+			__HAL_TIM_SET_COUNTER(htim, 0);  // reset the counter
+
+			if (IC_Val2 > IC_Val1)
+			{
+				Difference = IC_Val2-IC_Val1;
+			}
+
+			else if (IC_Val1 > IC_Val2)
+			{
+				Difference = (0xffff - IC_Val1) + IC_Val2;
+			}
+
+			Distance = Difference * .034/2;
+			Is_First_Captured = 0; // set it back to false
+
+			// set polarity to rising edge
+			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
+			__HAL_TIM_DISABLE_IT(&htim1, TIM_IT_CC1);
 		}
 	}
 }
+
 */
 
 /* USER CODE END 4 */
