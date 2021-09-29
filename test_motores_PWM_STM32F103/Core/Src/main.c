@@ -63,7 +63,7 @@ T_MOV last_movimiento = QUIETO;
 uint8_t sensores_dist = 0;
 
 //variables del HC-SR04
-uint16_t desbordeTIM1 = 0;
+uint16_t desbordeTIM1 = 0; //desborda cada 42 us.
 uint32_t ic1 = 0, ic2 = 0; //capturas de los flancos
 uint16_t cuentasDesbordes = 0;
 uint32_t cuentaPulsos = 0;
@@ -124,6 +124,7 @@ int main(void)
   //HAL_TIM_Base_Start_IT(&htim2);
   //HAL_TIM_Base_Start_IT(&htim3);
 
+  HAL_TIM_Base_Start_IT(&htim1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
@@ -138,6 +139,9 @@ int main(void)
   {
 	  switch (statusBurst){
 	  	  case 0:
+
+	  		  if (desbordeTIM1 < 3572) break; //3572 = 150 ms aprox; 2380 = 100 ms aprox.
+
 	  		  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 1);
 
 	  		  delayTrig = 10 + (uint8_t)__HAL_TIM_GET_COUNTER (&htim1);
@@ -149,9 +153,17 @@ int main(void)
 
 	  		  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 0);
 
+	  		  desbordeTIM1 = 0;
+
 	  		  statusBurst = 1;
 		  break;
 	  	  case 1:
+
+	  		  if (desbordeTIM1 > 595){ // 25 ms.
+	  			  statusBurst = 0;
+	  			  break;
+	  		  }
+
 	  		  if (flagEco != 0){
 	  			  flagEco = 0;
 	  			  statusBurst = 2;
@@ -164,9 +176,12 @@ int main(void)
 
 			  if (cuentaPulsos < 25000){
 				  distancia = cuentaPulsos * 34 / 2000;
+			  }else{
+				  distancia = 400;
 			  }
 
 			  statusBurst = 0;
+			  desbordeTIM1 = 0;
 		  break;
 
 	  } //fin switch (statusBurst)
@@ -191,7 +206,9 @@ int main(void)
 			status_movimiento = ROTANDO_IZQ;
 		default:
 		break;
-	} //fin switch sensopres_dist
+	  } //fin switch sensopres_dist
+
+	  if (distancia < 25) status_movimiento = ROTANDO_IZQ;
 
 
 	  switch (status_movimiento) {
