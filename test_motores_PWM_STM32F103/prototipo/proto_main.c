@@ -60,6 +60,8 @@ typedef enum{
 //variables de control
 T_MOV status_movimiento = QUIETO;
 T_MOV last_movimiento = QUIETO;
+uint8_t SI, SF, SD;
+
 uint8_t sensores_dist = 0;
 
 //variables del HC-SR04
@@ -189,12 +191,14 @@ int main(void)
 
 	  //TIM2->CCR1;
 	  
-	  //sensores_dist = SI << 2 | SF << 1 | SD
+	  //sensores_dist = SI << 2 | SF << 1 | SD (logica negativa)
 	  
-	  sensores_dist = (HAL_GPIO_ReadPin(IN_sensorL_GPIO_Port, IN_sensorL_Pin)) << 0b010;
-	  sensores_dist += HAL_GPIO_ReadPin(IN_sensorR_GPIO_Port, IN_sensorR_Pin);
-	  if (distancia < 25) sensores_dist += 0b010;
+	  SI = (HAL_GPIO_ReadPin(IN_sensorL_GPIO_Port, IN_sensorL_Pin));
+	  SD = HAL_GPIO_ReadPin(IN_sensorR_GPIO_Port, IN_sensorR_Pin);
+	  if (distancia < 25) SF = 1; else SF = 0;
+
 	  
+	  sensores_dist = SI << 2 | SF << 1 | SD;
 	  /*
 	  switch (sensores_dist) {
 		case 0b0:
@@ -224,6 +228,8 @@ int main(void)
 
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
+
+			status_movimiento = AVANZANDO;
 		break;
 		case AVANZANDO:
 
@@ -234,14 +240,14 @@ int main(void)
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
 
 			switch (sensores_dist) {
-				case 0b001:
-				case 0b010:
-				case 0b011:
-				case 0b111:
+				case 0b110:
+				case 0b101:
+				case 0b100:
+				case 0b000:
 					status_movimiento = ROTANDO_IZQ;
 				break;
-				case 0b100:
-				case 0b110:
+				case 0b011:
+				case 0b001:
 					status_movimiento = ROTANDO_DER;
 				break;
 				default:
@@ -258,10 +264,10 @@ int main(void)
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
 
 			switch (sensores_dist){
-				case 0b000:
+				case 0b111:
 					status_movimiento = AVANZANDO;
 				break;
-				case 0b100:
+				case 0b011:
 					status_movimiento = ROTANDO_DER;
 				default:
 				break;
@@ -276,10 +282,10 @@ int main(void)
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
 
 			switch (sensores_dist){
-				case 0b000:
+				case 0b111:
 					status_movimiento = AVANZANDO;
 				break;
-				case 0b001:
+				case 0b110:
 					status_movimiento = ROTANDO_IZQ;
 				default:
 				break;
@@ -350,7 +356,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+/*
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if (htim->Instance==TIM1){
 		desbordeTIM1++;
@@ -371,7 +377,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 		flagEco = 1;
 	}
 }
-
+*/
 /* USER CODE END 4 */
 
 /**

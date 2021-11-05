@@ -60,6 +60,8 @@ typedef enum{
 //variables de control
 T_MOV status_movimiento = QUIETO;
 T_MOV last_movimiento = QUIETO;
+uint8_t SI, SF, SD;
+
 uint8_t sensores_dist = 0;
 
 //variables del HC-SR04
@@ -189,72 +191,104 @@ int main(void)
 
 	  //TIM2->CCR1;
 
-	  sensores_dist = (HAL_GPIO_ReadPin(IN_sensorL_GPIO_Port, IN_sensorL_Pin)) << 0b01;
-	  sensores_dist += HAL_GPIO_ReadPin(IN_sensorR_GPIO_Port, IN_sensorR_Pin);
+	  //sensores_dist = SI << 2 | SF << 1 | SD (logica negativa)
 
-	  switch (sensores_dist) {
-		case 0b0:
-			status_movimiento = ROTANDO_DER;
-		break;
-		case 0b10:
-			status_movimiento = ROTANDO_DER;
-		break;
-		case 0b11:
-			status_movimiento = AVANZANDO;
-		break;
-		case 0b01:
-			status_movimiento = ROTANDO_IZQ;
-		default:
-		break;
-	  } //fin switch sensopres_dist
+	  SI = (HAL_GPIO_ReadPin(IN_sensorL_GPIO_Port, IN_sensorL_Pin)) ;
+	  SD = HAL_GPIO_ReadPin(IN_sensorR_GPIO_Port, IN_sensorR_Pin);
+	  if (distancia < 25) SF = 0; else SF = 1;
 
-	  if (distancia < 25) status_movimiento = ROTANDO_IZQ;
+	  sensores_dist = SI << 2 | SF << 1 | SD;
+
+
 
 
 	  switch (status_movimiento) {
-		case QUIETO:
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+		  case QUIETO:
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
-		break;
-		case AVANZANDO:
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
-		break;
-		case ROTANDO_IZQ:
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
-		break;
-		case ROTANDO_DER:
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+			  status_movimiento = AVANZANDO;
+			  break;
+		  case AVANZANDO:
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
-		break;
-		case RETROCEDIENDO:
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
-		break;
-		case PIVOTE_IZQ_AVAN:
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
 
-		break;
-		case PIVOTE_DER_AVAN:
+			  switch (sensores_dist) {
+				  case 0b110:
+				  case 0b101:
+				  case 0b100:
+				  case 0b000:
+					  status_movimiento = ROTANDO_IZQ;
+					  break;
+				  case 0b011:
+				  case 0b001:
+					  status_movimiento = ROTANDO_DER;
+					  break;
+				  default:
+					  break;
+			  } //end switch sensores_dist
 
-		default:
-		break;
-	} //fin switch status_movimiento
+			  break;
+				  case ROTANDO_IZQ:
+
+					  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+					  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+
+					  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
+					  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
+
+					  switch (sensores_dist){
+						  case 0b111:
+							  status_movimiento = AVANZANDO;
+							  break;
+						  case 0b011:
+							  status_movimiento = ROTANDO_DER;
+						  default:
+							  break;
+					  } //end switch sensores_dist
+
+					  break;
+						  case ROTANDO_DER:
+							  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+							  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+
+							  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
+							  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+
+							  switch (sensores_dist){
+								  case 0b111:
+									  status_movimiento = AVANZANDO;
+									  break;
+								  case 0b110:
+									  status_movimiento = ROTANDO_IZQ;
+								  default:
+									  break;
+							  } //end switch sensores_dist
+
+							  break;
+								  case RETROCEDIENDO:
+									  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+									  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+
+									  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
+									  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+									  break;
+								  case PIVOTE_IZQ_AVAN:
+
+									  break;
+								  case PIVOTE_DER_AVAN:
+
+								  default:
+									  break;
+	  } //fin switch status_movimiento
 
 
 

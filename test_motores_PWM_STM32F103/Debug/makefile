@@ -46,8 +46,8 @@ test_motores_PWM_STM32F103.bin \
 all: test_motores_PWM_STM32F103.elf secondary-outputs
 
 # Tool invocations
-test_motores_PWM_STM32F103.elf: $(OBJS) $(USER_OBJS) /home/lucho/STM32CubeIDE/robot_ws/test_motores_PWM_STM32F103/STM32F103C8TX_FLASH.ld
-	arm-none-eabi-gcc -o "test_motores_PWM_STM32F103.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/home/lucho/STM32CubeIDE/robot_ws/test_motores_PWM_STM32F103/STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="test_motores_PWM_STM32F103.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+test_motores_PWM_STM32F103.elf: $(OBJS) $(USER_OBJS) /home/lucho/STM32CubeIDE/ws_robotica/test_motores_PWM_STM32F103/STM32F103C8TX_FLASH.ld
+	arm-none-eabi-gcc -o "test_motores_PWM_STM32F103.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/home/lucho/STM32CubeIDE/ws_robotica/test_motores_PWM_STM32F103/STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="test_motores_PWM_STM32F103.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
