@@ -73,6 +73,8 @@ uint8_t flagEco;
 uint8_t statusBurst = 0;
 uint8_t delayTrig = 0;
 uint16_t distancia = 400;
+int16_t encoder1 = 0;
+int16_t encoder2 = 0;
 
 //variables
 
@@ -119,12 +121,15 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM2_Init();
   MX_TIM1_Init();
+  MX_TIM3_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
   HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
 
-  //HAL_TIM_Base_Start_IT(&htim2);
-  //HAL_TIM_Base_Start_IT(&htim3);
+  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_1);
 
   HAL_TIM_Base_Start_IT(&htim1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
@@ -187,6 +192,11 @@ int main(void)
 		  break;
 
 	  } //fin switch (statusBurst)
+
+
+	  if (encoder1 != 0){
+
+	  }
 
 
 	  //TIM2->CCR1;
@@ -342,6 +352,11 @@ void SystemClock_Config(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if (htim->Instance==TIM1){
 		desbordeTIM1++;
+	}
+
+	if (htim->Instance==TIM2){
+		encoder1 = __HAL_TIM_GET_COUNTER(&htim3);
+		encoder2 = __HAL_TIM_GET_COUNTER(&htim4);
 	}
 
 }
