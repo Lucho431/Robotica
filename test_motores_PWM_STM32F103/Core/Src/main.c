@@ -65,7 +65,7 @@ uint8_t SI, SF, SD;
 uint8_t sensores_dist = 0;
 
 //variables del HC-SR04
-uint16_t desbordeTIM1 = 0; //desborda cada 42 us.
+uint16_t desbordeTIM3 = 0; //desborda cada 42 us.
 uint32_t ic1 = 0, ic2 = 0; //capturas de los flancos
 uint16_t cuentasDesbordes = 0;
 uint32_t cuentaPulsos = 0;
@@ -119,23 +119,20 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM2_Init();
-  MX_TIM1_Init();
   MX_TIM3_Init();
-  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
   HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
 
-  HAL_TIM_Base_Start_IT(&htim2);
-  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_1);
+//  HAL_TIM_Base_Start_IT(&htim2);
+//  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);
+//  HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_1);
 
-  HAL_TIM_Base_Start_IT(&htim1);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-  HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
-  HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_4);
+  HAL_TIM_Base_Start_IT(&htim3);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+  HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_3);
+  HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_4);
 
 
   /* USER CODE END 2 */
@@ -147,26 +144,26 @@ int main(void)
 	  switch (statusBurst){
 	  	  case 0:
 
-	  		  if (desbordeTIM1 < 3572) break; //3572 = 150 ms aprox; 2380 = 100 ms aprox.
+	  		  if (desbordeTIM3 < 3572) break; //3572 = 150 ms aprox; 2380 = 100 ms aprox.
 
 	  		  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 1);
 
-	  		  delayTrig = 10 + (uint8_t)__HAL_TIM_GET_COUNTER (&htim1);
+	  		  delayTrig = 10 + (uint8_t)__HAL_TIM_GET_COUNTER (&htim3);
 	  		  if (delayTrig > 32){
 	  			  delayTrig -= 32;
-	  			  while (__HAL_TIM_GET_COUNTER (&htim1) > 32);
+	  			  while (__HAL_TIM_GET_COUNTER (&htim3) > 32);
 	  		  }
-	  		  while (__HAL_TIM_GET_COUNTER (&htim1) < delayTrig);
+	  		  while (__HAL_TIM_GET_COUNTER (&htim3) < delayTrig);
 
 	  		  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 0);
 
-	  		  desbordeTIM1 = 0;
+	  		  desbordeTIM3 = 0;
 
 	  		  statusBurst = 1;
 		  break;
 	  	  case 1:
 
-	  		  if (desbordeTIM1 > 595){ // 25 ms.
+	  		  if (desbordeTIM3 > 595){ // 25 ms.
 	  			  statusBurst = 0;
 	  			  break;
 	  		  }
@@ -188,7 +185,7 @@ int main(void)
 			  }
 
 			  statusBurst = 0;
-			  desbordeTIM1 = 0;
+			  desbordeTIM3 = 0;
 		  break;
 
 	  } //fin switch (statusBurst)
@@ -350,14 +347,14 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	if (htim->Instance==TIM1){
-		desbordeTIM1++;
+	if (htim->Instance==TIM3){
+		desbordeTIM3++;
 	}
 
-	if (htim->Instance==TIM2){
-		encoder1 = __HAL_TIM_GET_COUNTER(&htim3);
-		encoder2 = __HAL_TIM_GET_COUNTER(&htim4);
-	}
+//	if (htim->Instance==TIM2){
+//		encoder1 = __HAL_TIM_GET_COUNTER(&htim3);
+//		encoder2 = __HAL_TIM_GET_COUNTER(&htim4);
+//	}
 
 }
 
@@ -365,12 +362,12 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3){
 		//HAL_TIM_ReadCapturedValue(htim, HAL_TIM_ACTIVE_CHANNEL_3);
 		ic1 = htim->Instance->CCR3;
-		desbordeTIM1 = 0;
+		desbordeTIM3 = 0;
 	}
 
 	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4){
 		ic2 = htim->Instance->CCR4;
-		cuentasDesbordes = desbordeTIM1;
+		cuentasDesbordes = desbordeTIM3;
 		flagEco = 1;
 	}
 }

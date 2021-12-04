@@ -62,22 +62,22 @@ void Error_Handler(void);
 #define IN_sensorR_GPIO_Port GPIOA
 #define IN_sensorL_Pin GPIO_PIN_5
 #define IN_sensorL_GPIO_Port GPIOA
-#define OUT_in1_Pin GPIO_PIN_0
-#define OUT_in1_GPIO_Port GPIOB
+#define PWM_R_Pin GPIO_PIN_6
+#define PWM_R_GPIO_Port GPIOA
+#define PWM_L_Pin GPIO_PIN_7
+#define PWM_L_GPIO_Port GPIOA
+#define IC_Eco_Pin GPIO_PIN_0
+#define IC_Eco_GPIO_Port GPIOB
 #define OUT_in2_Pin GPIO_PIN_1
 #define OUT_in2_GPIO_Port GPIOB
 #define OUT_in3_Pin GPIO_PIN_10
 #define OUT_in3_GPIO_Port GPIOB
 #define OUT_in4_Pin GPIO_PIN_11
 #define OUT_in4_GPIO_Port GPIOB
+#define OUT_in1_Pin GPIO_PIN_14
+#define OUT_in1_GPIO_Port GPIOB
 #define OUT_Trig_Pin GPIO_PIN_15
 #define OUT_Trig_GPIO_Port GPIOB
-#define PWM_L_Pin GPIO_PIN_8
-#define PWM_L_GPIO_Port GPIOA
-#define PWM_R_Pin GPIO_PIN_9
-#define PWM_R_GPIO_Port GPIOA
-#define IC_Eco_Pin GPIO_PIN_10
-#define IC_Eco_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
