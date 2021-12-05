@@ -66,6 +66,7 @@ uint8_t sensores_dist = 0;
 
 //variables del HC-SR04
 uint16_t desbordeTIM3 = 0; //desborda cada 42 us.
+uint16_t desbordeTIM4 = 0; //desborda cada 10 ms.
 uint32_t ic1 = 0, ic2 = 0; //capturas de los flancos
 uint16_t cuentasDesbordes = 0;
 uint32_t cuentaPulsos = 0;
@@ -120,11 +121,16 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM3_Init();
+  MX_TIM1_Init();
+  MX_TIM2_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
   HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
 
-//  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_TIM_Base_Start_IT(&htim4);
+  HAL_TIM_Base_Start(&htim1);
+  HAL_TIM_Base_Start(&htim2);
 //  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);
 //  HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_1);
 
@@ -191,12 +197,28 @@ int main(void)
 	  } //fin switch (statusBurst)
 
 
-	  if (encoder1 != 0){
+	  if (desbordeTIM4 > 21){
+		  encoder1 = __HAL_TIM_GET_COUNTER(&htim1);
+		  __HAL_TIM_SET_COUNTER(&htim1, 0);
+		  encoder2 = __HAL_TIM_GET_COUNTER(&htim2);
+		  __HAL_TIM_SET_COUNTER(&htim2, 0);
 
+		  if (encoder1 > 5){
+			  TIM3->CCR1--;
+		  }else if (encoder2 < 5){
+			  TIM3->CCR1++;
+		  }
+
+		  if (encoder2 > 5){
+			  TIM3->CCR2--;
+		  }else if (encoder2 < 5){
+			  TIM3->CCR2++;
+		  }
+
+		  desbordeTIM4 = 0;
 	  }
 
 
-	  //TIM2->CCR1;
 
 	  //sensores_dist = SI << 2 | SF << 1 | SD (logica negativa)
 
@@ -351,10 +373,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		desbordeTIM3++;
 	}
 
-//	if (htim->Instance==TIM2){
-//		encoder1 = __HAL_TIM_GET_COUNTER(&htim3);
-//		encoder2 = __HAL_TIM_GET_COUNTER(&htim4);
-//	}
+	if (htim->Instance==TIM4){
+		desbordeTIM4++;
+	}
 
 }
 
