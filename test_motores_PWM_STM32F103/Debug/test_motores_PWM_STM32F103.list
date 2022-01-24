@@ -275,10 +275,10 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim4);
  800027a:	48a4      	ldr	r0, [pc, #656]	; (800050c <main+0x2c8>)
  800027c:	f001 fd70 	bl	8001d60 <HAL_TIM_Base_Start_IT>
-  HAL_TIM_Base_Start(&htim1);
+  HAL_TIM_Base_Start(&htim1); //encoder
  8000280:	48a3      	ldr	r0, [pc, #652]	; (8000510 <main+0x2cc>)
  8000282:	f001 fd23 	bl	8001ccc <HAL_TIM_Base_Start>
-  HAL_TIM_Base_Start(&htim2);
+  HAL_TIM_Base_Start(&htim2); //encoder
  8000286:	48a3      	ldr	r0, [pc, #652]	; (8000514 <main+0x2d0>)
  8000288:	f001 fd20 	bl	8001ccc <HAL_TIM_Base_Start>
 //  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);

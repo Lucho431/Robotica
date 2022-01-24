@@ -129,8 +129,8 @@ int main(void)
   HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
 
   HAL_TIM_Base_Start_IT(&htim4);
-  HAL_TIM_Base_Start(&htim1);
-  HAL_TIM_Base_Start(&htim2);
+  HAL_TIM_Base_Start(&htim1); //encoder
+  HAL_TIM_Base_Start(&htim2); //encoder
 //  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);
 //  HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_1);
 
