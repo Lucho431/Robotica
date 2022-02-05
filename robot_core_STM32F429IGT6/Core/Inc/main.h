@@ -60,7 +60,7 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define PWM_Trig_Pin GPIO_PIN_10
 #define PWM_Trig_GPIO_Port GPIOH
-#define IC_Eco_Pin GPIO_PIN_11
+#define IC_Eco_Pin GPIO_PIN_12
 #define IC_Eco_GPIO_Port GPIOH
 #define PWM_R_Pin GPIO_PIN_12
 #define PWM_R_GPIO_Port GPIOD
