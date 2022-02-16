@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2022 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -206,10 +206,10 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
     /**TIM1 GPIO Configuration
     PA12     ------> TIM1_ETR
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_12;
+    GPIO_InitStruct.Pin = encoder_L_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(encoder_L_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN TIM1_MspInit 1 */
 
@@ -227,10 +227,10 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
     /**TIM2 GPIO Configuration
     PA0-WKUP     ------> TIM2_ETR
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_0;
+    GPIO_InitStruct.Pin = encoder_R_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(encoder_R_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN TIM2_MspInit 1 */
 
@@ -291,7 +291,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
     PA6     ------> TIM3_CH1
     PA7     ------> TIM3_CH2
     */
-    GPIO_InitStruct.Pin = PWM_R_Pin|PWM_L_Pin;
+    GPIO_InitStruct.Pin = PWM_L_Pin|PWM_R_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -317,7 +317,7 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
     /**TIM1 GPIO Configuration
     PA12     ------> TIM1_ETR
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_12);
+    HAL_GPIO_DeInit(encoder_L_GPIO_Port, encoder_L_Pin);
 
   /* USER CODE BEGIN TIM1_MspDeInit 1 */
 
@@ -334,7 +334,7 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
     /**TIM2 GPIO Configuration
     PA0-WKUP     ------> TIM2_ETR
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_0);
+    HAL_GPIO_DeInit(encoder_R_GPIO_Port, encoder_R_Pin);
 
   /* USER CODE BEGIN TIM2_MspDeInit 1 */
 
@@ -353,7 +353,7 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
     PA7     ------> TIM3_CH2
     PB0     ------> TIM3_CH3
     */
-    HAL_GPIO_DeInit(GPIOA, PWM_R_Pin|PWM_L_Pin);
+    HAL_GPIO_DeInit(GPIOA, PWM_L_Pin|PWM_R_Pin);
 
     HAL_GPIO_DeInit(IC_Eco_GPIO_Port, IC_Eco_Pin);
 
