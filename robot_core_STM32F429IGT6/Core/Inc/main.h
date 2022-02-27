@@ -29,6 +29,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -74,10 +75,10 @@ void Error_Handler(void);
 #define OUT_in2_GPIO_Port GPIOC
 #define OUT_in1_Pin GPIO_PIN_0
 #define OUT_in1_GPIO_Port GPIOD
-#define IN_sensorR_Pin GPIO_PIN_1
-#define IN_sensorR_GPIO_Port GPIOD
-#define IN_sensorL_Pin GPIO_PIN_3
+#define IN_sensorL_Pin GPIO_PIN_1
 #define IN_sensorL_GPIO_Port GPIOD
+#define IN_sensorR_Pin GPIO_PIN_3
+#define IN_sensorR_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

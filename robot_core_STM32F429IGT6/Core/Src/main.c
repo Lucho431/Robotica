@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dac.h"
+#include "i2c.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -135,6 +136,7 @@ int main(void)
   MX_TIM5_Init();
   MX_UART7_Init();
   MX_TIM7_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_TIM_Base_Start_IT(&htim7); //desborda cada 10 ms.
@@ -142,8 +144,8 @@ int main(void)
   HAL_TIM_Base_Start(&htim2); //encoder.
   HAL_TIM_Base_Start(&htim3); //encoder.
 
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1); //rueda derecha (por default).
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2); //rueda izquierda (por default).
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1); //rueda izquierda.
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2); //rueda derecha.
 
   HAL_TIM_Base_Start(&htim5); //control del SR-04.
   HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_1); //para el pulso del trigger.
@@ -156,6 +158,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  /*
 	  read_button = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_1);
 
 	  if (!read_button){
@@ -163,15 +166,18 @@ int main(void)
 			  TRIG_SR04;
 		  }
 	  }
-
 	  last_button = read_button;
+	  */
 
+	  SR_04();
 
 	  movimiento();
 
 	  if (desbordeTIM7 > 21){
 		  encoders();
 		  desbordeTIM7 = 0;
+
+		  TRIG_SR04;
 	  }
 
 
@@ -284,25 +290,27 @@ void movimiento (void){
 
 	sensores_dist = SI << 2 | SF << 1 | SD;
 
+	//return;
+
 
 	switch (status_movimiento) {
 		case QUIETO:
 
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
 
 			status_movimiento = AVANZANDO;
 		break;
 		case AVANZANDO:
 
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 1);
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
 
 			switch (sensores_dist) {
 				case 0b110:
@@ -323,10 +331,10 @@ void movimiento (void){
 		case ROTANDO_IZQ:
 
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 1);
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
 
 			switch (sensores_dist){
 				case 0b111:
@@ -341,10 +349,10 @@ void movimiento (void){
 		break;
 		case ROTANDO_DER:
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 1);
 
 			switch (sensores_dist){
 				case 0b111:
@@ -359,10 +367,10 @@ void movimiento (void){
 		break;
 		case RETROCEDIENDO:
 			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 1);
 			break;
 		case PIVOTE_IZQ_AVAN:
 
@@ -383,15 +391,19 @@ void encoders (void){
 	__HAL_TIM_SET_COUNTER(&htim2, 0);
 
 	if (encoderL > 5){
-		TIM4->CCR2--;
+		if (TIM4->CCR1 > 45)
+			TIM4->CCR1--;
 	}else if (encoderL < 5){
-		TIM4->CCR2++;
+		if (TIM4->CCR1 < 95)
+			TIM4->CCR1++;
 	}
 
 	if (encoderR > 5){
-		TIM4->CCR1--;
+		if (TIM4->CCR2 > 45)
+			TIM4->CCR2--;
 	}else if (encoderR < 5){
-		TIM4->CCR1++;
+		if (TIM4->CCR2 < 95)
+			TIM4->CCR2++;
 	}
 } //fin encoders()
 
