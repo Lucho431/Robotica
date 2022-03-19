@@ -27,7 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "comandosUart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,6 +58,15 @@ typedef enum{
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+
+//comunicacion//
+uint8_t rxUart[4];
+uint8_t flag_cmd = 0;
+uint8_t txUart[4];
+uint8_t esp01Presente = 0;
+
+//modo de funcionamiento//
+T_MODO modoFuncionamiento= MANUAL;
 
 //prueba//
 uint8_t read_button = 1;
@@ -91,8 +100,11 @@ int16_t encoderR;
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void SR_04 (void);
-void movimiento (void);
+void sensores (void);
+void movimientoLibre (void);
+void modo_funcionamiento (void);
 void encoders (void);
+void check_rxUart (void);
 
 /* USER CODE END PFP */
 
@@ -152,6 +164,14 @@ int main(void)
   HAL_TIM_IC_Start_IT(&htim5, TIM_CHANNEL_3); //para capturar el eco (flanco ascendente).
   HAL_TIM_IC_Start_IT(&htim5, TIM_CHANNEL_4); //para capturar el eco (flanco descendente).
 
+  HAL_UART_Receive(&huart7, rxUart, 4, 500);
+
+  if (!esp01Presente) {
+	  modoFuncionamiento = AUTOMATICO;
+  }else{
+	  modoFuncionamiento = MANUAL;
+  }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -169,10 +189,16 @@ int main(void)
 	  last_button = read_button;
 	  */
 
+	  if (flag_cmd != 0){
+		  //check_rxUart();
+		  flag_cmd = 0;
+	  }
+
 	  SR_04();
+	  sensores();
+	  modo_funcionamiento();
 
-	  movimiento();
-
+	  //todo: corregir encoders
 	  if (desbordeTIM7 > 21){
 		  encoders();
 		  desbordeTIM7 = 0;
@@ -257,6 +283,9 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 	}
 }
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	flag_cmd = 1;
+}
 
 
 void SR_04 (void){
@@ -281,16 +310,16 @@ void SR_04 (void){
 
 } //end SR_04()
 
-void movimiento (void){
-
+void sensores (void){
 	//sensores_dist = SI << 2 | SF << 1 | SD (logica negativa)
 	SI = (HAL_GPIO_ReadPin(IN_sensorL_GPIO_Port, IN_sensorL_Pin)) ;
 	SD = HAL_GPIO_ReadPin(IN_sensorR_GPIO_Port, IN_sensorR_Pin);
 	if (distanciaSR04 < 25) SF = 0; else SF = 1;
 
 	sensores_dist = SI << 2 | SF << 1 | SD;
+}
 
-	//return;
+void movimientoLibre (void){
 
 
 	switch (status_movimiento) {
@@ -382,7 +411,7 @@ void movimiento (void){
 
 	} //fin switch status_movimiento
 
-} //fin movimiento()
+} //fin movimientoLibre()
 
 void encoders (void){
 	encoderL = __HAL_TIM_GET_COUNTER(&htim3);
@@ -407,6 +436,98 @@ void encoders (void){
 	}
 } //fin encoders()
 
+void test_respuesta (void){
+	switch(rxUart[0]){
+		case AVANCE:
+			sprintf(txUart, "avan");
+		break;
+		case RETROCEDE:
+			sprintf(txUart, "RETR");
+		break;
+		case GIRO_IZQ:
+			sprintf(txUart, "IZQU");
+		break;
+		case GIRO_DER:
+			sprintf(txUart, "DERE");
+		break;
+	} //end switch rxUart
+
+	HAL_UART_Transmit(&huart7, txUart, 4, 20);
+	HAL_UART_Receive_IT(&huart7, rxUart, 4);
+}
+
+void check_rxUart (void){
+
+	if (!rxUart[3]){
+		txUart[0] = ERROR;
+		txUart[3] = '\0';
+		HAL_UART_Transmit_IT(&huart7, txUart, 4);
+		return;
+	}
+
+	switch (rxUart[0]) {
+		case HOLA:
+			esp01Presente = 1;
+			txUart[0] = HOLA;
+			txUart[3] = '\0';
+			HAL_UART_Transmit_IT(&huart7, txUart, 4);
+
+		break;
+		case MODO:
+
+			switch (rxUart[1]) {
+				case AUTOMATICO:
+					modoFuncionamiento = AUTOMATICO;
+					txUart[0] = OK;
+					txUart[3] = '\0';
+					HAL_UART_Transmit_IT(&huart7, txUart, 4);
+				break;
+				case MANUAL:
+					modoFuncionamiento = MANUAL;
+					txUart[0] = OK;
+					txUart[3] = '\0';
+					HAL_UART_Transmit_IT(&huart7, txUart, 4);
+				break;
+				default:
+					txUart[0] = ERROR;
+					txUart[3] = '\0';
+					HAL_UART_Transmit_IT(&huart7, txUart, 4);
+			} //end switch rxUart[1]
+
+		break;
+
+		case AVANCE:
+			//sprintf(txUart, "avan");
+		break;
+		case RETROCEDE:
+			//sprintf(txUart, "RETR");
+		break;
+		case GIRO_IZQ:
+			//sprintf(txUart, "IZQU");
+		break;
+		case GIRO_DER:
+			//sprintf(txUart, "DERE");
+		break;
+	} //end switch rxUart[0]
+
+	HAL_UART_Receive_IT(&huart7, rxUart, 4);
+
+} //end check_rxUart ()
+
+void modo_funcionamiento (void){
+
+	switch (modoFuncionamiento) {
+		case AUTOMATICO:
+			movimientoLibre();
+		break;
+		case MANUAL:
+
+		break;
+		default:
+		break;
+	} //end switch modoFuncionamiento
+
+} //end modo_funcionamiento ()
 
 /* USER CODE END 4 */
 
