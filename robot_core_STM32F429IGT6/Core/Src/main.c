@@ -76,6 +76,12 @@ uint8_t last_button = 1;
 T_MOV status_movimiento = QUIETO;
 T_MOV last_movimiento = QUIETO;
 
+uint16_t avance_cant = 0;
+uint16_t retroceso_cant = 0;
+uint16_t giroIzq_cant = 0;
+uint16_t giroDer_cant = 0;
+
+
 //sensores//
 uint8_t SI, SF, SD;
 uint8_t sensores_dist = 0;
@@ -91,8 +97,11 @@ int32_t cuentaPulsos = 0;
 uint16_t distanciaSR04 = 0; //distancia en cm.
 
 //encoders//
+uint8_t flag_encoders = 0;
 int16_t encoderL;
 int16_t encoderR;
+int16_t acum_encoderL = 0;
+int16_t acum_encoderR = 0;
 
 /* USER CODE END PV */
 
@@ -166,6 +175,23 @@ int main(void)
 
   HAL_UART_Receive(&huart7, rxUart, 4, 500);
 
+  if (rxUart[0] == HOLA){
+
+	  if (!rxUart[3]){
+		  txUart[0] = CMD_ERROR;
+		  txUart[3] = '\0';
+		  HAL_UART_Transmit_IT(&huart7, txUart, 4);
+	  } else {
+		  esp01Presente = 1;
+		  txUart[0] = HOLA;
+		  txUart[3] = '\0';
+		  HAL_UART_Transmit_IT(&huart7, txUart, 4);
+	  }
+
+  }
+
+  HAL_UART_Receive_IT(&huart7, rxUart, 4);
+
   if (!esp01Presente) {
 	  modoFuncionamiento = AUTOMATICO;
   }else{
@@ -190,7 +216,7 @@ int main(void)
 	  */
 
 	  if (flag_cmd != 0){
-		  //check_rxUart();
+		  check_rxUart();
 		  flag_cmd = 0;
 	  }
 
@@ -198,9 +224,8 @@ int main(void)
 	  sensores();
 	  modo_funcionamiento();
 
-	  //todo: corregir encoders
 	  if (desbordeTIM7 > 21){
-		  encoders();
+		  flag_encoders = 1;
 		  desbordeTIM7 = 0;
 
 		  TRIG_SR04;
@@ -321,6 +346,10 @@ void sensores (void){
 
 void movimientoLibre (void){
 
+	if (avance_cant != 0) avance_cant = 0;
+	if (retroceso_cant != 0) retroceso_cant = 0;
+	if (giroIzq_cant != 0) giroIzq_cant = 0;
+	if (giroDer_cant != 0) giroDer_cant = 0;
 
 	switch (status_movimiento) {
 		case QUIETO:
@@ -413,7 +442,216 @@ void movimientoLibre (void){
 
 } //fin movimientoLibre()
 
+void movimientoRC (void){
+
+	if (!avance_cant && !retroceso_cant && !giroIzq_cant && !giroDer_cant ){
+		status_movimiento = QUIETO;
+	}
+
+	switch (status_movimiento) {
+		case QUIETO:
+
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
+
+			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+
+			if (avance_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = AVANZANDO;
+				break;
+			}
+
+			if (retroceso_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = RETROCEDIENDO;
+				break;
+			}
+
+			if (giroIzq_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = ROTANDO_IZQ;
+				break;
+			}
+
+			if (giroDer_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = ROTANDO_DER;
+				break;
+			}
+
+		break;
+		case AVANZANDO:
+
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 1);
+
+			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+
+			encoders();
+
+			if (avance_cant > ((acum_encoderL + acum_encoderR) >> 1) ) break;
+
+			avance_cant = 0;
+
+			status_movimiento = QUIETO;
+
+			if (retroceso_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = RETROCEDIENDO;
+				break;
+			}
+
+			if (giroIzq_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = ROTANDO_IZQ;
+				break;
+			}
+
+			if (giroDer_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = ROTANDO_DER;
+				break;
+			}
+
+		break;
+		case ROTANDO_IZQ:
+
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 1);
+
+			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+
+			encoders();
+
+			if (giroIzq_cant > ((acum_encoderL + acum_encoderR) >> 1) ) break;
+
+			giroIzq_cant = 0;
+
+			status_movimiento = QUIETO;
+
+			if (avance_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = AVANZANDO;
+				break;
+			}
+
+			if (retroceso_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = RETROCEDIENDO;
+				break;
+			}
+
+			if (giroDer_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = ROTANDO_DER;
+				break;
+			}
+
+		break;
+		case ROTANDO_DER:
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
+
+			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 1);
+
+			encoders();
+
+			if (giroDer_cant > ((acum_encoderL + acum_encoderR) >> 1) ) break;
+
+			giroDer_cant = 0;
+
+			status_movimiento = QUIETO;
+
+			if (avance_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = AVANZANDO;
+				break;
+			}
+
+			if (retroceso_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = RETROCEDIENDO;
+				break;
+			}
+
+			if (giroIzq_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = ROTANDO_IZQ;
+				break;
+			}
+
+		break;
+		case RETROCEDIENDO:
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
+
+			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 1);
+
+			encoders();
+
+			if (retroceso_cant > ((acum_encoderL + acum_encoderR) >> 1) ) break;
+
+			retroceso_cant = 0;
+
+			status_movimiento = QUIETO;
+
+			if (avance_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = AVANZANDO;
+				break;
+			}
+
+			if (giroIzq_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = ROTANDO_IZQ;
+				break;
+			}
+
+			if (giroDer_cant != 0){
+				acum_encoderL = 0;
+				acum_encoderR = 0;
+				status_movimiento = ROTANDO_DER;
+				break;
+			}
+
+		break;
+		case PIVOTE_IZQ_AVAN:
+
+		break;
+		case PIVOTE_DER_AVAN:
+
+		default:
+		break;
+
+	} //fin switch status_movimiento
+
+} //fin movimientoRC()
+
 void encoders (void){
+
+	if (!flag_encoders) return;
+
 	encoderL = __HAL_TIM_GET_COUNTER(&htim3);
 	__HAL_TIM_SET_COUNTER(&htim3, 0);
 	encoderR = __HAL_TIM_GET_COUNTER(&htim2);
@@ -434,21 +672,27 @@ void encoders (void){
 		if (TIM4->CCR2 < 95)
 			TIM4->CCR2++;
 	}
+
+	acum_encoderL += encoderL;
+	acum_encoderR += encoderR;
+
+	flag_encoders = 0;
+
 } //fin encoders()
 
 void test_respuesta (void){
 	switch(rxUart[0]){
 		case AVANCE:
-			sprintf(txUart, "avan");
+			sprintf((char *)txUart, "avan");
 		break;
 		case RETROCEDE:
-			sprintf(txUart, "RETR");
+			sprintf((char *)txUart, "RETR");
 		break;
 		case GIRO_IZQ:
-			sprintf(txUart, "IZQU");
+			sprintf((char *)txUart, "IZQU");
 		break;
 		case GIRO_DER:
-			sprintf(txUart, "DERE");
+			sprintf((char *)txUart, "DERE");
 		break;
 	} //end switch rxUart
 
@@ -458,10 +702,11 @@ void test_respuesta (void){
 
 void check_rxUart (void){
 
-	if (!rxUart[3]){
-		txUart[0] = ERROR;
+	if (rxUart[3] != 0){
+		txUart[0] = CMD_ERROR;
 		txUart[3] = '\0';
 		HAL_UART_Transmit_IT(&huart7, txUart, 4);
+		HAL_UART_Receive_IT(&huart7, rxUart, 4);
 		return;
 	}
 
@@ -478,18 +723,20 @@ void check_rxUart (void){
 			switch (rxUart[1]) {
 				case AUTOMATICO:
 					modoFuncionamiento = AUTOMATICO;
+					flag_encoders = 0;
 					txUart[0] = OK;
 					txUart[3] = '\0';
 					HAL_UART_Transmit_IT(&huart7, txUart, 4);
 				break;
 				case MANUAL:
+					status_movimiento = QUIETO;
 					modoFuncionamiento = MANUAL;
 					txUart[0] = OK;
 					txUart[3] = '\0';
 					HAL_UART_Transmit_IT(&huart7, txUart, 4);
 				break;
 				default:
-					txUart[0] = ERROR;
+					txUart[0] = CMD_ERROR;
 					txUart[3] = '\0';
 					HAL_UART_Transmit_IT(&huart7, txUart, 4);
 			} //end switch rxUart[1]
@@ -497,15 +744,34 @@ void check_rxUart (void){
 		break;
 
 		case AVANCE:
-			//sprintf(txUart, "avan");
+			avance_cant += (uint16_t) (rxUart[2] + (rxUart[1] << 8));
+
+			txUart[0] = OK;
+			txUart[3] = '\0';
+			HAL_UART_Transmit_IT(&huart7, txUart, 4);
 		break;
 		case RETROCEDE:
+			retroceso_cant += (uint16_t) (rxUart[2] + (rxUart[1] << 8));
+
+			txUart[0] = OK;
+			txUart[3] = '\0';
+			HAL_UART_Transmit_IT(&huart7, txUart, 4);
 			//sprintf(txUart, "RETR");
 		break;
 		case GIRO_IZQ:
+			giroIzq_cant += (uint16_t) (rxUart[2] + (rxUart[1] << 8));
+
+			txUart[0] = OK;
+			txUart[3] = '\0';
+			HAL_UART_Transmit_IT(&huart7, txUart, 4);
 			//sprintf(txUart, "IZQU");
 		break;
 		case GIRO_DER:
+			giroDer_cant += (uint16_t) (rxUart[2] + (rxUart[1] << 8));
+
+			txUart[0] = OK;
+			txUart[3] = '\0';
+			HAL_UART_Transmit_IT(&huart7, txUart, 4);
 			//sprintf(txUart, "DERE");
 		break;
 	} //end switch rxUart[0]
@@ -519,9 +785,10 @@ void modo_funcionamiento (void){
 	switch (modoFuncionamiento) {
 		case AUTOMATICO:
 			movimientoLibre();
+			encoders();
 		break;
 		case MANUAL:
-
+			movimientoRC();
 		break;
 		default:
 		break;
