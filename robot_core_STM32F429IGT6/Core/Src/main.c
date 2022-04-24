@@ -103,6 +103,11 @@ int16_t encoderR;
 int16_t acum_encoderL = 0;
 int16_t acum_encoderR = 0;
 
+//velocidades//
+uint8_t velL = 5;
+uint8_t velR = 5;
+uint8_t Kp = 1;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -113,6 +118,7 @@ void sensores (void);
 void movimientoLibre (void);
 void modo_funcionamiento (void);
 void encoders (void);
+void velocidades (void);
 void check_rxUart (void);
 
 /* USER CODE END PFP */
@@ -342,7 +348,11 @@ void sensores (void){
 	if (distanciaSR04 < 25) SF = 0; else SF = 1;
 
 	sensores_dist = SI << 2 | SF << 1 | SD;
-}
+} //end sensores()
+
+void velocidades (void){
+
+} //end velocidades()
 
 void movimientoLibre (void){
 
@@ -360,6 +370,9 @@ void movimientoLibre (void){
 			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
 			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
 
+			velL = 0;
+			velR = 0;
+
 			status_movimiento = AVANZANDO;
 		break;
 		case AVANZANDO:
@@ -370,19 +383,30 @@ void movimientoLibre (void){
 			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
 			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
 
+			velL = 5;
+			velR = 5;
+
 			switch (sensores_dist) {
 				case 0b110:
+					//agregado para prueba
+					//status_movimiento = PIVOTE_IZQ_AVAN;
+					status_movimiento = ROTANDO_IZQ;
+				break;
 				case 0b101:
 				case 0b100:
 				case 0b000:
 					status_movimiento = ROTANDO_IZQ;
-					break;
+				break;
 				case 0b011:
+					//agregado para prueba
+					//status_movimiento = PIVOTE_DER_AVAN;
+					status_movimiento = ROTANDO_DER;
+				break;
 				case 0b001:
 					status_movimiento = ROTANDO_DER;
-					break;
+				break;
 				default:
-					break;
+				break;
 			} //end switch sensores_dist
 
 		break;
@@ -393,6 +417,9 @@ void movimientoLibre (void){
 
 			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
 			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+
+			velL = 5;
+			velR = 5;
 
 			switch (sensores_dist){
 				case 0b111:
@@ -412,6 +439,9 @@ void movimientoLibre (void){
 			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
 			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 1);
 
+			velL = 5;
+			velR = 5;
+
 			switch (sensores_dist){
 				case 0b111:
 					status_movimiento = AVANZANDO;
@@ -429,11 +459,58 @@ void movimientoLibre (void){
 
 			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
 			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 1);
+
+			velL = 5;
+			velR = 5;
+
+			status_movimiento = AVANZANDO;
 			break;
 		case PIVOTE_IZQ_AVAN:
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 1);
+
+			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+
+			velL = 0;
+			velR = 5;
+
+			switch (sensores_dist){
+				case 0b111:
+					status_movimiento = AVANZANDO;
+				break;
+				case 0b011:
+					status_movimiento = ROTANDO_DER;
+				break;
+				case 0b100:
+					status_movimiento = ROTANDO_IZQ;
+				default:
+				break;
+			} //end switch sensores_dist
 
 		break;
 		case PIVOTE_DER_AVAN:
+			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
+
+			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+
+			velL = 5;
+			velR = 0;
+
+			switch (sensores_dist){
+				case 0b111:
+					status_movimiento = AVANZANDO;
+				break;
+				case 0b110:
+					status_movimiento = ROTANDO_IZQ;
+				break;
+				case 0b001:
+					status_movimiento = ROTANDO_DER;
+				default:
+				break;
+			} //end switch sensores_dist
 
 		default:
 		break;
@@ -657,19 +734,19 @@ void encoders (void){
 	encoderR = __HAL_TIM_GET_COUNTER(&htim2);
 	__HAL_TIM_SET_COUNTER(&htim2, 0);
 
-	if (encoderL > 5){
+	if (encoderL > velL){
 		if (TIM4->CCR1 > 45)
 			TIM4->CCR1--;
-	}else if (encoderL < 5){
-		if (TIM4->CCR1 < 95)
+	}else if (encoderL < velL){
+		if (TIM4->CCR1 < 85)
 			TIM4->CCR1++;
 	}
 
-	if (encoderR > 5){
+	if (encoderR > velR){
 		if (TIM4->CCR2 > 45)
 			TIM4->CCR2--;
-	}else if (encoderR < 5){
-		if (TIM4->CCR2 < 95)
+	}else if (encoderR < velR){
+		if (TIM4->CCR2 < 85)
 			TIM4->CCR2++;
 	}
 
