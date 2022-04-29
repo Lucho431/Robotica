@@ -734,21 +734,25 @@ void encoders (void){
 	encoderR = __HAL_TIM_GET_COUNTER(&htim2);
 	__HAL_TIM_SET_COUNTER(&htim2, 0);
 
-	if (encoderL > velL){
-		if (TIM4->CCR1 > 45)
-			TIM4->CCR1--;
-	}else if (encoderL < velL){
-		if (TIM4->CCR1 < 85)
-			TIM4->CCR1++;
-	}
+//	if (encoderL > velL){
+//		if (TIM4->CCR1 > 45)
+//			TIM4->CCR1--;
+//	}else if (encoderL < velL){
+//		if (TIM4->CCR1 < 85)
+//			TIM4->CCR1++;
+//	}
 
-	if (encoderR > velR){
-		if (TIM4->CCR2 > 45)
-			TIM4->CCR2--;
-	}else if (encoderR < velR){
-		if (TIM4->CCR2 < 85)
-			TIM4->CCR2++;
-	}
+	TIM4->CCR1 += velL - encoderL;
+
+//	if (encoderR > velR){
+//		if (TIM4->CCR2 > 45)
+//			TIM4->CCR2--;
+//	}else if (encoderR < velR){
+//		if (TIM4->CCR2 < 85)
+//			TIM4->CCR2++;
+//	}
+
+	TIM4->CCR2 += velR - encoderR;
 
 	acum_encoderL += encoderL;
 	acum_encoderR += encoderR;
@@ -760,16 +764,16 @@ void encoders (void){
 void test_respuesta (void){
 	switch(rxUart[0]){
 		case AVANCE:
-			sprintf((char *)txUart, "avan");
+//			sprintf((char *)txUart, "avan");
 		break;
 		case RETROCEDE:
-			sprintf((char *)txUart, "RETR");
+//			sprintf((char *)txUart, "RETR");
 		break;
 		case GIRO_IZQ:
-			sprintf((char *)txUart, "IZQU");
+//			sprintf((char *)txUart, "IZQU");
 		break;
 		case GIRO_DER:
-			sprintf((char *)txUart, "DERE");
+//			sprintf((char *)txUart, "DERE");
 		break;
 	} //end switch rxUart
 
