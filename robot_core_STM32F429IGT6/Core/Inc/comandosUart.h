@@ -22,25 +22,39 @@
 //#define RETROCEDE
 
 typedef enum{
+	//cmd base:
 	HOLA = 0x01,
-	OK,
-	CANCEL,
+	OK_,
+	CANCEL_,
 	CMD_ERROR,
 	MODO,
+	//posicionamiento:
 	COORD_X,
 	COORD_Y,
 	COORD_ANG,
 	DESTINO,
+	//comando de movimiento:
 	AVANCE,
 	GIRO_IZQ,
 	GIRO_DER,
 	RETROCEDE,
+	STOP,
+	//lecturas de movimiento:
+	ACEL_AVANCE,
+	DIST_AVANCE,
+	VEL_AVANCE,
+	ACEL_GIRO,
+	DIST_GIRO,
+	VEL_GIRO,
+	DELTA_ENC_L,
+	DELTA_ENC_R,
 }T_CMD;
 
 typedef enum{
 	AUTOMATICO,
 	MANUAL,
 }T_MODO;
+
 
 
 #endif /* INC_COMANDOSUART_H_ */
