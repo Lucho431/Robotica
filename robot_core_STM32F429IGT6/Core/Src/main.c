@@ -28,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "comandosUart.h"
+#include "mpu_9265_lfs.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,6 +49,11 @@ typedef enum{
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define DIAMETRO_RUEDAS 	65  //en mm
+#define RANURAS_ENCODER		20  //vuelta completa
+#define AVANCE_X_PULSO		10  //en mm
+#define DIAMETRO_ACRILICO	130 //en mm
+#define ANCHO_TOTAL			156 //156,6 mm
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -168,8 +174,8 @@ int main(void)
 
   HAL_TIM_Base_Start_IT(&htim7); //desborda cada 10 ms.
 
-  HAL_TIM_Base_Start(&htim2); //encoder.
-  HAL_TIM_Base_Start(&htim3); //encoder.
+  HAL_TIM_Base_Start(&htim2); //encoder R.
+  HAL_TIM_Base_Start(&htim3); //encoder L.
 
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1); //rueda izquierda.
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2); //rueda derecha.
