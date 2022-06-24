@@ -48,6 +48,8 @@ unsigned long last_tick = 0;
 T_CONN conn_status = TRYING_WIFI;
 uint16_t reconnect_time = 0; // 1 * 10ms
 
+//variable de texto
+char texto[50];
 
 
 void timer_update(void){
@@ -131,6 +133,14 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		//Serial.print ("auto");
 		cmdFrame[0] = MODO;
 		cmdFrame[1] = AUTOMATICO;
+		cmdFrame[3] = '\0';
+		Serial.write (cmdFrame, 4);
+		return;
+	}
+	
+	if ( !strcmp(pl, "v_avan") ){//si recibe por MQTT el comando "auto"
+		//Serial.print ("auto");
+		cmdFrame[0] = VEL_AVANCE;
 		cmdFrame[3] = '\0';
 		Serial.write (cmdFrame, 4);
 		return;
@@ -269,6 +279,15 @@ void serialCom_handler(void){
 		client.flush();
 		return;
 	}
+	
+	//VEL_AVANCE
+	if (rxUart[0] == VEL_AVANCE){
+		sprintf(texto, "%d", (uint16_t) ( (rxUart[1] << 8) |  rxUart[2]) );
+		client.publish("Info/Nodo_ESP01/VEL_AVANCE", texto);
+		client.flush();
+		return;
+	}
+	
 		
 	for (uint8_t i = 0; i < RXUART_BUFFER_SIZE; i++){
 		rxUart[i] = '\0';

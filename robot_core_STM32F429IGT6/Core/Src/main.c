@@ -91,6 +91,7 @@ uint16_t giroDer_cant = 0;
 //sensores//
 uint8_t SI, SF, SD;
 uint8_t sensores_dist = 0;
+mpuData_t mpu9265;
 
 //ticks//
 uint8_t desbordeTIM7 = 0; //desborda cada 10 ms.
@@ -184,6 +185,9 @@ int main(void)
   HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_1); //para el pulso del trigger.
   HAL_TIM_IC_Start_IT(&htim5, TIM_CHANNEL_3); //para capturar el eco (flanco ascendente).
   HAL_TIM_IC_Start_IT(&htim5, TIM_CHANNEL_4); //para capturar el eco (flanco descendente).
+
+  mpu9265_Init(&hi2c1);
+
 
   HAL_UART_Receive(&huart7, rxUart, 4, 500);
 
@@ -811,14 +815,14 @@ void check_rxUart (void){
 				case AUTOMATICO:
 					modoFuncionamiento = AUTOMATICO;
 					flag_encoders = 0;
-					txUart[0] = OK;
+					txUart[0] = OK_;
 					txUart[3] = '\0';
 					HAL_UART_Transmit_IT(&huart7, txUart, 4);
 				break;
 				case MANUAL:
 					status_movimiento = QUIETO;
 					modoFuncionamiento = MANUAL;
-					txUart[0] = OK;
+					txUart[0] = OK_;
 					txUart[3] = '\0';
 					HAL_UART_Transmit_IT(&huart7, txUart, 4);
 				break;
@@ -833,14 +837,14 @@ void check_rxUart (void){
 		case AVANCE:
 			avance_cant += (uint16_t) (rxUart[2] + (rxUart[1] << 8));
 
-			txUart[0] = OK;
+			txUart[0] = OK_;
 			txUart[3] = '\0';
 			HAL_UART_Transmit_IT(&huart7, txUart, 4);
 		break;
 		case RETROCEDE:
 			retroceso_cant += (uint16_t) (rxUart[2] + (rxUart[1] << 8));
 
-			txUart[0] = OK;
+			txUart[0] = OK_;
 			txUart[3] = '\0';
 			HAL_UART_Transmit_IT(&huart7, txUart, 4);
 			//sprintf(txUart, "RETR");
@@ -848,7 +852,7 @@ void check_rxUart (void){
 		case GIRO_IZQ:
 			giroIzq_cant += (uint16_t) (rxUart[2] + (rxUart[1] << 8));
 
-			txUart[0] = OK;
+			txUart[0] = OK_;
 			txUart[3] = '\0';
 			HAL_UART_Transmit_IT(&huart7, txUart, 4);
 			//sprintf(txUart, "IZQU");
@@ -856,11 +860,22 @@ void check_rxUart (void){
 		case GIRO_DER:
 			giroDer_cant += (uint16_t) (rxUart[2] + (rxUart[1] << 8));
 
-			txUart[0] = OK;
+			txUart[0] = OK_;
 			txUart[3] = '\0';
 			HAL_UART_Transmit_IT(&huart7, txUart, 4);
 			//sprintf(txUart, "DERE");
 		break;
+		case VEL_AVANCE:
+			mpu9265_Read_Accel(&mpu9265);
+
+			txUart[0] = VEL_AVANCE;
+			txUart[1] = (uint8_t)(mpu9265.Accel_X_RAW >> 8);
+			txUart[2] = (uint8_t)(mpu9265.Accel_X_RAW & 0xFF);
+			txUart[3] = '\0';
+			HAL_UART_Transmit_IT(&huart7, txUart, 4);
+		break;
+
+
 	} //end switch rxUart[0]
 
 	HAL_UART_Receive_IT(&huart7, rxUart, 4);
