@@ -1,0 +1,3 @@
+CalculosRobot.ods de la rama F429 está más actualizado
+listadoPinesRobot.ods está más completo en la rama F429, pero la parte del F103 está bien en el master.
+El proyecto test_motores_PWM_STM32F103 tambien está más actualizado en el master.
