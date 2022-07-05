@@ -58,14 +58,16 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define encoder_R_Pin GPIO_PIN_0
+#define encoder_R_GPIO_Port GPIOA
 #define IN_sensorR_Pin GPIO_PIN_4
 #define IN_sensorR_GPIO_Port GPIOA
 #define IN_sensorL_Pin GPIO_PIN_5
 #define IN_sensorL_GPIO_Port GPIOA
-#define PWM_R_Pin GPIO_PIN_6
-#define PWM_R_GPIO_Port GPIOA
-#define PWM_L_Pin GPIO_PIN_7
+#define PWM_L_Pin GPIO_PIN_6
 #define PWM_L_GPIO_Port GPIOA
+#define PWM_R_Pin GPIO_PIN_7
+#define PWM_R_GPIO_Port GPIOA
 #define IC_Eco_Pin GPIO_PIN_0
 #define IC_Eco_GPIO_Port GPIOB
 #define OUT_in2_Pin GPIO_PIN_1
@@ -78,6 +80,8 @@ void Error_Handler(void);
 #define OUT_in1_GPIO_Port GPIOB
 #define OUT_Trig_Pin GPIO_PIN_15
 #define OUT_Trig_GPIO_Port GPIOB
+#define encoder_L_Pin GPIO_PIN_12
+#define encoder_L_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
