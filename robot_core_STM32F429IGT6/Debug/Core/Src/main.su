@@ -1,0 +1,15 @@
+main.c:142:5:main	8	static
+main.c:262:6:SystemClock_Config	88	static
+main.c:309:6:HAL_TIM_PeriodElapsedCallback	16	static
+main.c:315:6:HAL_TIM_IC_CaptureCallback	16	static
+main.c:327:6:HAL_UART_RxCpltCallback	16	static
+main.c:332:6:SR_04	4	static
+main.c:354:6:sensores	8	static
+main.c:363:6:velocidades	4	static
+main.c:367:6:movimientoLibre	8	static
+main.c:532:6:movimientoRC	8	static
+main.c:738:6:encoders	4	static
+main.c:774:6:test_respuesta	8	static
+main.c:794:6:check_rxUart	8	static
+main.c:885:6:modo_funcionamiento	8	static
+main.c:907:6:Error_Handler	4	static

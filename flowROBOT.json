@@ -1,0 +1,477 @@
+[
+    {
+        "id": "cbc36fa5a4935551",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "dc5c17e083db84f9",
+        "type": "mqtt in",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "topic": "Info/Nodo_ESP01/#",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "48f075c996337301",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "x": 270,
+        "y": 140,
+        "wires": [
+            [
+                "3d7176a13971eff0",
+                "a3213dbc68440c03"
+            ]
+        ]
+    },
+    {
+        "id": "be3ac9fc90dd2a4a",
+        "type": "mqtt out",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "topic": "Cmd/Nodo_ESP01",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "48f075c996337301",
+        "x": 590,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "137a1baa198c233e",
+        "type": "ui_button",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "group": "bbea045f5fe804ae",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "retroceso",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "down",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 260,
+        "y": 520,
+        "wires": [
+            [
+                "be3ac9fc90dd2a4a"
+            ]
+        ]
+    },
+    {
+        "id": "404f9399026867aa",
+        "type": "ui_button",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "group": "bbea045f5fe804ae",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "izquierda",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "left",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 260,
+        "y": 560,
+        "wires": [
+            [
+                "be3ac9fc90dd2a4a"
+            ]
+        ]
+    },
+    {
+        "id": "03fb0bb156bad8ed",
+        "type": "ui_button",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "group": "bbea045f5fe804ae",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "derecha",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "right",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 260,
+        "y": 600,
+        "wires": [
+            [
+                "be3ac9fc90dd2a4a"
+            ]
+        ]
+    },
+    {
+        "id": "b3c6a18035f4c2ad",
+        "type": "ui_button",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "group": "bbea045f5fe804ae",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "avance",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "up",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 260,
+        "y": 480,
+        "wires": [
+            [
+                "be3ac9fc90dd2a4a"
+            ]
+        ]
+    },
+    {
+        "id": "3d7176a13971eff0",
+        "type": "ui_text",
+        "z": "cbc36fa5a4935551",
+        "group": "d6614eaae92fbd37",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Rx payload:",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 550,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "b9ca4610d5714ac4",
+        "type": "ui_button",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "group": "badd66b6d48a0c02",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Manual",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "manual",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 260,
+        "y": 700,
+        "wires": [
+            [
+                "dff7ecee59e52cf7",
+                "be3ac9fc90dd2a4a"
+            ]
+        ]
+    },
+    {
+        "id": "c72ed3c7173c57cb",
+        "type": "ui_button",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "group": "badd66b6d48a0c02",
+        "order": 6,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Automatico",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "auto",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 270,
+        "y": 740,
+        "wires": [
+            [
+                "dff7ecee59e52cf7",
+                "be3ac9fc90dd2a4a"
+            ]
+        ]
+    },
+    {
+        "id": "dff7ecee59e52cf7",
+        "type": "ui_text",
+        "z": "cbc36fa5a4935551",
+        "group": "badd66b6d48a0c02",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "control actual:",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 580,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "a3213dbc68440c03",
+        "type": "ui_text",
+        "z": "cbc36fa5a4935551",
+        "group": "d6614eaae92fbd37",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Rx topic:",
+        "format": "{{msg.topic}}",
+        "layout": "row-spread",
+        "x": 540,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "30b0322449ec1849",
+        "type": "mqtt in",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "topic": "Hola",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "48f075c996337301",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "x": 230,
+        "y": 80,
+        "wires": [
+            [
+                "a3213dbc68440c03",
+                "3d7176a13971eff0"
+            ]
+        ]
+    },
+    {
+        "id": "1c852a0917261a6c",
+        "type": "ui_text",
+        "z": "cbc36fa5a4935551",
+        "group": "d6614eaae92fbd37",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Tx topic:",
+        "format": "{{msg.topic}}",
+        "layout": "row-spread",
+        "x": 540,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "ae9efdb0cebcd7c3",
+        "type": "ui_text",
+        "z": "cbc36fa5a4935551",
+        "group": "d6614eaae92fbd37",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Tx payload:",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 550,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "e8c1ed8da97739ae",
+        "type": "mqtt in",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "topic": "Cmd/Nodo_ESP01",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "48f075c996337301",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "x": 272,
+        "y": 229,
+        "wires": [
+            [
+                "1c852a0917261a6c",
+                "ae9efdb0cebcd7c3"
+            ]
+        ]
+    },
+    {
+        "id": "617eac41dd51c3f0",
+        "type": "ui_button",
+        "z": "cbc36fa5a4935551",
+        "name": "limpiar Rx/Tx",
+        "group": "d6614eaae92fbd37",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Limpiar Rx/Tx",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": " ",
+        "payloadType": "str",
+        "topic": " ",
+        "topicType": "str",
+        "x": 300,
+        "y": 340,
+        "wires": [
+            [
+                "a3213dbc68440c03",
+                "3d7176a13971eff0",
+                "1c852a0917261a6c",
+                "ae9efdb0cebcd7c3"
+            ]
+        ]
+    },
+    {
+        "id": "160965ddb86e72c8",
+        "type": "inject",
+        "z": "cbc36fa5a4935551",
+        "name": "solicitud MPU",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "v_avan",
+        "payloadType": "str",
+        "x": 300,
+        "y": 400,
+        "wires": [
+            [
+                "be3ac9fc90dd2a4a"
+            ]
+        ]
+    },
+    {
+        "id": "7d133aaa42e83780",
+        "type": "mqtt in",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "topic": "Info/Nodo_ESP01/VEL_AVANCE",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "48f075c996337301",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "x": 190,
+        "y": 280,
+        "wires": [
+            [
+                "3d7176a13971eff0",
+                "a3213dbc68440c03"
+            ]
+        ]
+    },
+    {
+        "id": "48f075c996337301",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "bbea045f5fe804ae",
+        "type": "ui_group",
+        "name": "Manual",
+        "tab": "f7be38f3567ae573",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "d6614eaae92fbd37",
+        "type": "ui_group",
+        "name": "MQTT",
+        "tab": "f7be38f3567ae573",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "badd66b6d48a0c02",
+        "type": "ui_group",
+        "name": "Modo de operación",
+        "tab": "f7be38f3567ae573",
+        "order": 3,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "f7be38f3567ae573",
+        "type": "ui_tab",
+        "name": "CONTROL ROBOT",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]
