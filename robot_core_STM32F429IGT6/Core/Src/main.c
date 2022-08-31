@@ -96,6 +96,8 @@ mpuData_t mpu9265;
 
 //ticks//
 uint8_t desbordeTIM7 = 0; //desborda cada 10 ms.
+uint8_t periodo_Encoder = 0;
+uint8_t periodo_SR04 = 0;
 
 //SR-04//
 uint32_t ic1 = 0;
@@ -251,6 +253,20 @@ int main(void)
 		  desbordeTIM7 = 0;
 
 		  TRIG_SR04;
+	  }
+
+	  if (desbordeTIM7 != 0){
+		  periodo_Encoder += desbordeTIM7;
+		  periodo_SR04 += desbordeTIM7;
+		  desbordeTIM7 = 0;
+		  if (periodo_Encoder > 21){ // en 10 * ms
+			  flag_encoders = 1;
+			  periodo_Encoder = 0;
+		  }
+		  if (periodo_SR04 > 21){
+			  TRIG_SR04;
+			  periodo_SR04 = 0;
+		  }
 	  }
 
 
@@ -430,6 +446,7 @@ void movimientoLibre (void){
 
 			velL = 0;
 			velR = 0;
+			periodo_Encoder = 0;
 
 			status_movimiento = AVANZANDO;
 		break;
@@ -449,6 +466,7 @@ void movimientoLibre (void){
 					//agregado para prueba
 					//status_movimiento = PIVOTE_IZQ_AVAN;
 					status_movimiento = ROTANDO_IZQ;
+
 				break;
 				case 0b101:
 				case 0b100:

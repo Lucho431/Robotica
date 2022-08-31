@@ -58,8 +58,8 @@ uint8_t encoder (void);
 
 uint8_t velocidades (void){
 	
-	finalVelL = (uint8_t) (velL & 0x7F); //saca el signo del int8_t
-	finalVelR = (uint8_t) (velR & 0x7F); //saca el signo del int8_t
+	finalVelL = (uint8_t) abs(velL); //saca el signo del int8_t
+	finalVelR = (uint8_t) abs(velR); //saca el signo del int8_t
 	finalDirL = (uint8_t) (velL >> 7); //1: retrocede; 0: avanza;
 	finalDirR = (uint8_t) (velR >> 7); //1: retrocede; 0: avanza;
 }
@@ -74,12 +74,19 @@ uint8_t aceleraciones (void){
 				break;
 			}else{
 				//seteo ruedas en avance
+				if (finalVelL > 0){
+					status_movimiento = EN_RETROCESO;
+				}
 			}
 			
 			
 		break;
 		case EN_AVANCE:
 			
+			if (finalDirL != 0){
+
+			}
+
 		break;
 		case EN_RETROCESO:
 			if (!finalDirL){
