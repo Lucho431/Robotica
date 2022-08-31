@@ -29,6 +29,7 @@
 /* USER CODE BEGIN Includes */
 #include "comandosUart.h"
 #include "mpu_9265_lfs.h"
+#include "stdlib.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -111,9 +112,12 @@ int16_t acum_encoderL = 0;
 int16_t acum_encoderR = 0;
 
 //velocidades//
-uint8_t velL = 5;
-uint8_t velR = 5;
+uint8_t velL = 5; //en ranuras cada 210 ms
+uint8_t velR = 5; //en ranuras cada 210 ms
+uint8_t velLFinal = 5; //en ranuras cada 210 ms
+uint8_t velRFinal = 5; //en ranuras cada 210 ms
 uint8_t Kp = 1;
+int8_t  Vr;
 
 /* USER CODE END PV */
 
@@ -125,7 +129,9 @@ void sensores (void);
 void movimientoLibre (void);
 void modo_funcionamiento (void);
 void encoders (void);
-void velocidades (void);
+void PWM_motores (void);
+void velocidades (int8_t, int8_t);
+void aceleracion (void);
 void check_rxUart (void);
 
 /* USER CODE END PFP */
@@ -360,7 +366,49 @@ void sensores (void){
 	sensores_dist = SI << 2 | SF << 1 | SD;
 } //end sensores()
 
-void velocidades (void){
+void PWM_motores (void){
+
+	TIM4->CCR1 += velL - encoderL;
+	if (TIM4->CCR1 < 62) TIM4->CCR1 = 62;
+	if (TIM4->CCR1 > 82) TIM4->CCR1 = 82;
+
+	TIM4->CCR2 += velR - encoderR;
+	if (TIM4->CCR2 < 62) TIM4->CCR2 = 62;
+	if (TIM4->CCR2 > 82) TIM4->CCR2 = 82;
+
+} //end PWM_motores()
+
+void aceleracion (void){
+	if (velL < velLFinal) velL++;
+
+} //end aceleracion()
+
+void velocidades (int8_t vl, int8_t vr){
+
+	if (vl < 0){
+		HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+		HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
+	} else if (vl > 0){
+		HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+		HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+	} else {
+		HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+		HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+	}
+
+	if (vr < 0){
+		HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
+		HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 1);
+	} else if (vr > 0){
+		HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 1);
+		HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+	} else {
+		HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
+		HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+	}
+
+	velLFinal = abs(vl);
+	velRFinal = abs(vr);
 
 } //end velocidades()
 
@@ -833,7 +881,6 @@ void check_rxUart (void){
 			} //end switch rxUart[1]
 
 		break;
-
 		case AVANCE:
 			avance_cant += (uint16_t) (rxUart[2] + (rxUart[1] << 8));
 
