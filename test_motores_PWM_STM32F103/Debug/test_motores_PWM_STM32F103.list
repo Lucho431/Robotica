@@ -37,13 +37,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
  16 .debug_macro  00016958  00000000  00000000  0002ad18  2**0
                   CONTENTS, READONLY, DEBUGGING
- 17 .debug_line   00007b5c  00000000  00000000  00041670  2**0
+ 17 .debug_line   00007d0c  00000000  00000000  00041670  2**0
                   CONTENTS, READONLY, DEBUGGING
- 18 .debug_str    000841db  00000000  00000000  000491cc  2**0
+ 18 .debug_str    000841d5  00000000  00000000  0004937c  2**0
                   CONTENTS, READONLY, DEBUGGING
- 19 .comment      0000007b  00000000  00000000  000cd3a7  2**0
+ 19 .comment      0000007b  00000000  00000000  000cd551  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  000026d4  00000000  00000000  000cd424  2**2
+ 20 .debug_frame  000026d4  00000000  00000000  000cd5cc  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -317,22 +317,22 @@ int main(void)
  80002bc:	d04f      	beq.n	800035e <main+0x11a>
  80002be:	2b00      	cmp	r3, #0
  80002c0:	f040 8083 	bne.w	80003ca <main+0x186>
-	  	  case 0:
+		  case 0:
 
-	  		  if (desbordeTIM3 < 3572) break; //3572 = 150 ms aprox; 2380 = 100 ms aprox.
+			  if (desbordeTIM3 < 3572) break; //3572 = 150 ms aprox; 2380 = 100 ms aprox.
  80002c4:	4b96      	ldr	r3, [pc, #600]	; (8000520 <main+0x2dc>)
  80002c6:	881b      	ldrh	r3, [r3, #0]
  80002c8:	f640 52f3 	movw	r2, #3571	; 0xdf3
  80002cc:	4293      	cmp	r3, r2
  80002ce:	d979      	bls.n	80003c4 <main+0x180>
 
-	  		  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 1);
  80002d0:	2201      	movs	r2, #1
  80002d2:	f44f 4100 	mov.w	r1, #32768	; 0x8000
  80002d6:	488c      	ldr	r0, [pc, #560]	; (8000508 <main+0x2c4>)
  80002d8:	f001 f8a5 	bl	8001426 <HAL_GPIO_WritePin>
 
-	  		  delayTrig = 10 + (uint8_t)__HAL_TIM_GET_COUNTER (&htim3);
+			  delayTrig = 10 + (uint8_t)__HAL_TIM_GET_COUNTER (&htim3);
  80002dc:	4b8e      	ldr	r3, [pc, #568]	; (8000518 <main+0x2d4>)
  80002de:	681b      	ldr	r3, [r3, #0]
  80002e0:	6a5b      	ldr	r3, [r3, #36]	; 0x24
@@ -341,27 +341,27 @@ int main(void)
  80002e6:	b2da      	uxtb	r2, r3
  80002e8:	4b8e      	ldr	r3, [pc, #568]	; (8000524 <main+0x2e0>)
  80002ea:	701a      	strb	r2, [r3, #0]
-	  		  if (delayTrig > 32){
+			  if (delayTrig > 32){
  80002ec:	4b8d      	ldr	r3, [pc, #564]	; (8000524 <main+0x2e0>)
  80002ee:	781b      	ldrb	r3, [r3, #0]
  80002f0:	2b20      	cmp	r3, #32
  80002f2:	d90b      	bls.n	800030c <main+0xc8>
-	  			  delayTrig -= 32;
+				  delayTrig -= 32;
  80002f4:	4b8b      	ldr	r3, [pc, #556]	; (8000524 <main+0x2e0>)
  80002f6:	781b      	ldrb	r3, [r3, #0]
  80002f8:	3b20      	subs	r3, #32
  80002fa:	b2da      	uxtb	r2, r3
  80002fc:	4b89      	ldr	r3, [pc, #548]	; (8000524 <main+0x2e0>)
  80002fe:	701a      	strb	r2, [r3, #0]
-	  			  while (__HAL_TIM_GET_COUNTER (&htim3) > 32);
+				  while (__HAL_TIM_GET_COUNTER (&htim3) > 32);
  8000300:	bf00      	nop
  8000302:	4b85      	ldr	r3, [pc, #532]	; (8000518 <main+0x2d4>)
  8000304:	681b      	ldr	r3, [r3, #0]
  8000306:	6a5b      	ldr	r3, [r3, #36]	; 0x24
  8000308:	2b20      	cmp	r3, #32
  800030a:	d8fa      	bhi.n	8000302 <main+0xbe>
-	  		  }
-	  		  while (__HAL_TIM_GET_COUNTER (&htim3) < delayTrig);
+			  }
+			  while (__HAL_TIM_GET_COUNTER (&htim3) < delayTrig);
  800030c:	bf00      	nop
  800030e:	4b82      	ldr	r3, [pc, #520]	; (8000518 <main+0x2d4>)
  8000310:	681b      	ldr	r3, [r3, #0]
@@ -371,56 +371,56 @@ int main(void)
  8000318:	4293      	cmp	r3, r2
  800031a:	d3f8      	bcc.n	800030e <main+0xca>
 
-	  		  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 0);
  800031c:	2200      	movs	r2, #0
  800031e:	f44f 4100 	mov.w	r1, #32768	; 0x8000
  8000322:	4879      	ldr	r0, [pc, #484]	; (8000508 <main+0x2c4>)
  8000324:	f001 f87f 	bl	8001426 <HAL_GPIO_WritePin>
 
-	  		  desbordeTIM3 = 0;
+			  desbordeTIM3 = 0;
  8000328:	4b7d      	ldr	r3, [pc, #500]	; (8000520 <main+0x2dc>)
  800032a:	2200      	movs	r2, #0
  800032c:	801a      	strh	r2, [r3, #0]
 
-	  		  statusBurst = 1;
+			  statusBurst = 1;
  800032e:	4b7b      	ldr	r3, [pc, #492]	; (800051c <main+0x2d8>)
  8000330:	2201      	movs	r2, #1
  8000332:	701a      	strb	r2, [r3, #0]
 		  break;
  8000334:	e049      	b.n	80003ca <main+0x186>
-	  	  case 1:
+		  case 1:
 
-	  		  if (desbordeTIM3 > 595){ // 25 ms.
+			  if (desbordeTIM3 > 595){ // 25 ms.
  8000336:	4b7a      	ldr	r3, [pc, #488]	; (8000520 <main+0x2dc>)
  8000338:	881b      	ldrh	r3, [r3, #0]
  800033a:	f5b3 7f15 	cmp.w	r3, #596	; 0x254
  800033e:	d303      	bcc.n	8000348 <main+0x104>
-	  			  statusBurst = 0;
+				  statusBurst = 0;
  8000340:	4b76      	ldr	r3, [pc, #472]	; (800051c <main+0x2d8>)
  8000342:	2200      	movs	r2, #0
  8000344:	701a      	strb	r2, [r3, #0]
-	  			  break;
+				  break;
  8000346:	e040      	b.n	80003ca <main+0x186>
-	  		  }
+			  }
 
-	  		  if (flagEco != 0){
+			  if (flagEco != 0){
  8000348:	4b77      	ldr	r3, [pc, #476]	; (8000528 <main+0x2e4>)
  800034a:	781b      	ldrb	r3, [r3, #0]
  800034c:	2b00      	cmp	r3, #0
  800034e:	d03b      	beq.n	80003c8 <main+0x184>
-	  			  flagEco = 0;
+				  flagEco = 0;
  8000350:	4b75      	ldr	r3, [pc, #468]	; (8000528 <main+0x2e4>)
  8000352:	2200      	movs	r2, #0
  8000354:	701a      	strb	r2, [r3, #0]
-	  			  statusBurst = 2;
+				  statusBurst = 2;
  8000356:	4b71      	ldr	r3, [pc, #452]	; (800051c <main+0x2d8>)
  8000358:	2202      	movs	r2, #2
  800035a:	701a      	strb	r2, [r3, #0]
-	  		  }
+			  }
 		  break;
  800035c:	e034      	b.n	80003c8 <main+0x184>
-	  	  case 2:
-	  		  if (cuentasDesbordes != 0){
+		  case 2:
+			  if (cuentasDesbordes != 0){
  800035e:	4b73      	ldr	r3, [pc, #460]	; (800052c <main+0x2e8>)
  8000360:	881b      	ldrh	r3, [r3, #0]
  8000362:	2b00      	cmp	r3, #0
@@ -480,7 +480,7 @@ int main(void)
  80003c0:	801a      	strh	r2, [r3, #0]
 		  break;
  80003c2:	e002      	b.n	80003ca <main+0x186>
-	  		  if (desbordeTIM3 < 3572) break; //3572 = 150 ms aprox; 2380 = 100 ms aprox.
+			  if (desbordeTIM3 < 3572) break; //3572 = 150 ms aprox; 2380 = 100 ms aprox.
  80003c4:	bf00      	nop
  80003c6:	e000      	b.n	80003ca <main+0x186>
 		  break;
@@ -489,7 +489,7 @@ int main(void)
 	  } //fin switch (statusBurst)
 
 
-	  if (desbordeTIM4 > 21){
+	  if (desbordeSysTick > 21){
  80003ca:	4b5e      	ldr	r3, [pc, #376]	; (8000544 <main+0x300>)
  80003cc:	881b      	ldrh	r3, [r3, #0]
  80003ce:	2b15      	cmp	r3, #21
@@ -565,7 +565,7 @@ int main(void)
  8000444:	639a      	str	r2, [r3, #56]	; 0x38
 		  }
 
-		  desbordeTIM4 = 0;
+		  desbordeSysTick = 0;
  8000446:	4b3f      	ldr	r3, [pc, #252]	; (8000544 <main+0x300>)
  8000448:	2200      	movs	r2, #0
  800044a:	801a      	strh	r2, [r3, #0]
@@ -757,145 +757,145 @@ int main(void)
  80005d4:	bf00      	nop
 			  } //end switch sensores_dist
 
-			  break;
+		  break;
  80005d6:	e066      	b.n	80006a6 <main+0x462>
-				  case ROTANDO_IZQ:
+		  case ROTANDO_IZQ:
 
-					  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
  80005d8:	2200      	movs	r2, #0
  80005da:	f44f 4180 	mov.w	r1, #16384	; 0x4000
  80005de:	4832      	ldr	r0, [pc, #200]	; (80006a8 <main+0x464>)
  80005e0:	f000 ff21 	bl	8001426 <HAL_GPIO_WritePin>
-					  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
  80005e4:	2201      	movs	r2, #1
  80005e6:	f44f 6100 	mov.w	r1, #2048	; 0x800
  80005ea:	482f      	ldr	r0, [pc, #188]	; (80006a8 <main+0x464>)
  80005ec:	f000 ff1b 	bl	8001426 <HAL_GPIO_WritePin>
 
-					  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
  80005f0:	2201      	movs	r2, #1
  80005f2:	2102      	movs	r1, #2
  80005f4:	482c      	ldr	r0, [pc, #176]	; (80006a8 <main+0x464>)
  80005f6:	f000 ff16 	bl	8001426 <HAL_GPIO_WritePin>
-					  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
  80005fa:	2200      	movs	r2, #0
  80005fc:	f44f 6180 	mov.w	r1, #1024	; 0x400
  8000600:	4829      	ldr	r0, [pc, #164]	; (80006a8 <main+0x464>)
  8000602:	f000 ff10 	bl	8001426 <HAL_GPIO_WritePin>
 
-					  switch (sensores_dist){
+			  switch (sensores_dist){
  8000606:	4b29      	ldr	r3, [pc, #164]	; (80006ac <main+0x468>)
  8000608:	781b      	ldrb	r3, [r3, #0]
  800060a:	2b03      	cmp	r3, #3
  800060c:	d006      	beq.n	800061c <main+0x3d8>
  800060e:	2b07      	cmp	r3, #7
  8000610:	d000      	beq.n	8000614 <main+0x3d0>
-							  status_movimiento = AVANZANDO;
-							  break;
-						  case 0b011:
-							  status_movimiento = ROTANDO_DER;
-						  default:
-							  break;
+					  status_movimiento = AVANZANDO;
+					  break;
+				  case 0b011:
+					  status_movimiento = ROTANDO_DER;
+				  default:
+				  break;
  8000612:	e006      	b.n	8000622 <main+0x3de>
-							  status_movimiento = AVANZANDO;
+					  status_movimiento = AVANZANDO;
  8000614:	4b26      	ldr	r3, [pc, #152]	; (80006b0 <main+0x46c>)
  8000616:	2201      	movs	r2, #1
  8000618:	701a      	strb	r2, [r3, #0]
-							  break;
+					  break;
  800061a:	e003      	b.n	8000624 <main+0x3e0>
-							  status_movimiento = ROTANDO_DER;
+					  status_movimiento = ROTANDO_DER;
  800061c:	4b24      	ldr	r3, [pc, #144]	; (80006b0 <main+0x46c>)
  800061e:	2204      	movs	r2, #4
  8000620:	701a      	strb	r2, [r3, #0]
-							  break;
+				  break;
  8000622:	bf00      	nop
-					  } //end switch sensores_dist
+			  } //end switch sensores_dist
 
-					  break;
+		  break;
  8000624:	e03f      	b.n	80006a6 <main+0x462>
-						  case ROTANDO_DER:
-							  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+		  case ROTANDO_DER:
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
  8000626:	2201      	movs	r2, #1
  8000628:	f44f 4180 	mov.w	r1, #16384	; 0x4000
  800062c:	481e      	ldr	r0, [pc, #120]	; (80006a8 <main+0x464>)
  800062e:	f000 fefa 	bl	8001426 <HAL_GPIO_WritePin>
-							  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
  8000632:	2200      	movs	r2, #0
  8000634:	f44f 6100 	mov.w	r1, #2048	; 0x800
  8000638:	481b      	ldr	r0, [pc, #108]	; (80006a8 <main+0x464>)
  800063a:	f000 fef4 	bl	8001426 <HAL_GPIO_WritePin>
 
-							  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
  800063e:	2200      	movs	r2, #0
  8000640:	2102      	movs	r1, #2
  8000642:	4819      	ldr	r0, [pc, #100]	; (80006a8 <main+0x464>)
  8000644:	f000 feef 	bl	8001426 <HAL_GPIO_WritePin>
-							  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
  8000648:	2201      	movs	r2, #1
  800064a:	f44f 6180 	mov.w	r1, #1024	; 0x400
  800064e:	4816      	ldr	r0, [pc, #88]	; (80006a8 <main+0x464>)
  8000650:	f000 fee9 	bl	8001426 <HAL_GPIO_WritePin>
 
-							  switch (sensores_dist){
+			  switch (sensores_dist){
  8000654:	4b15      	ldr	r3, [pc, #84]	; (80006ac <main+0x468>)
  8000656:	781b      	ldrb	r3, [r3, #0]
  8000658:	2b06      	cmp	r3, #6
  800065a:	d006      	beq.n	800066a <main+0x426>
  800065c:	2b07      	cmp	r3, #7
  800065e:	d000      	beq.n	8000662 <main+0x41e>
-									  status_movimiento = AVANZANDO;
-									  break;
-								  case 0b110:
-									  status_movimiento = ROTANDO_IZQ;
-								  default:
-									  break;
+					  status_movimiento = AVANZANDO;
+				  break;
+				  case 0b110:
+					  status_movimiento = ROTANDO_IZQ;
+				  default:
+				  break;
  8000660:	e006      	b.n	8000670 <main+0x42c>
-									  status_movimiento = AVANZANDO;
+					  status_movimiento = AVANZANDO;
  8000662:	4b13      	ldr	r3, [pc, #76]	; (80006b0 <main+0x46c>)
  8000664:	2201      	movs	r2, #1
  8000666:	701a      	strb	r2, [r3, #0]
-									  break;
+				  break;
  8000668:	e003      	b.n	8000672 <main+0x42e>
-									  status_movimiento = ROTANDO_IZQ;
+					  status_movimiento = ROTANDO_IZQ;
  800066a:	4b11      	ldr	r3, [pc, #68]	; (80006b0 <main+0x46c>)
  800066c:	2203      	movs	r2, #3
  800066e:	701a      	strb	r2, [r3, #0]
-									  break;
+				  break;
  8000670:	bf00      	nop
-							  } //end switch sensores_dist
+			  } //end switch sensores_dist
 
-							  break;
+			  break;
  8000672:	e018      	b.n	80006a6 <main+0x462>
-								  case RETROCEDIENDO:
-									  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			  case RETROCEDIENDO:
+				  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
  8000674:	2200      	movs	r2, #0
  8000676:	f44f 4180 	mov.w	r1, #16384	; 0x4000
  800067a:	480b      	ldr	r0, [pc, #44]	; (80006a8 <main+0x464>)
  800067c:	f000 fed3 	bl	8001426 <HAL_GPIO_WritePin>
-									  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+				  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
  8000680:	2200      	movs	r2, #0
  8000682:	f44f 6100 	mov.w	r1, #2048	; 0x800
  8000686:	4808      	ldr	r0, [pc, #32]	; (80006a8 <main+0x464>)
  8000688:	f000 fecd 	bl	8001426 <HAL_GPIO_WritePin>
 
-									  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
+				  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
  800068c:	2201      	movs	r2, #1
  800068e:	2102      	movs	r1, #2
  8000690:	4805      	ldr	r0, [pc, #20]	; (80006a8 <main+0x464>)
  8000692:	f000 fec8 	bl	8001426 <HAL_GPIO_WritePin>
-									  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+				  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
  8000696:	2201      	movs	r2, #1
  8000698:	f44f 6180 	mov.w	r1, #1024	; 0x400
  800069c:	4802      	ldr	r0, [pc, #8]	; (80006a8 <main+0x464>)
  800069e:	f000 fec2 	bl	8001426 <HAL_GPIO_WritePin>
-									  break;
+			  break;
  80006a2:	e000      	b.n	80006a6 <main+0x462>
 
-									  break;
-								  case PIVOTE_DER_AVAN:
+			  break;
+			  case PIVOTE_DER_AVAN:
 
-								  default:
-									  break;
+			  default:
+			  break;
  80006a4:	bf00      	nop
 	  switch (statusBurst){
  80006a6:	e604      	b.n	80002b2 <main+0x6e>
@@ -1031,7 +1031,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
  8000762:	4a09      	ldr	r2, [pc, #36]	; (8000788 <HAL_TIM_PeriodElapsedCallback+0x48>)
  8000764:	4293      	cmp	r3, r2
  8000766:	d105      	bne.n	8000774 <HAL_TIM_PeriodElapsedCallback+0x34>
-		desbordeTIM4++;
+		desbordeSysTick++;
  8000768:	4b08      	ldr	r3, [pc, #32]	; (800078c <HAL_TIM_PeriodElapsedCallback+0x4c>)
  800076a:	881b      	ldrh	r3, [r3, #0]
  800076c:	3301      	adds	r3, #1
@@ -2415,7 +2415,7 @@ __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
     HAL_NVIC_SetPriority(SysTick_IRQn, TickPriority, 0U);
  8000ec4:	2200      	movs	r2, #0
  8000ec6:	6879      	ldr	r1, [r7, #4]
- 8000ec8:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
+ 8000ec8:	f04f 30ff 	mov.w	r0, #4294967295
  8000ecc:	f000 f903 	bl	80010d6 <HAL_NVIC_SetPriority>
     uwTickPrio = TickPriority;
  8000ed0:	4a06      	ldr	r2, [pc, #24]	; (8000eec <HAL_InitTick+0x5c>)
@@ -2688,7 +2688,7 @@ __STATIC_INLINE uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t P
 
   return (
            ((PreemptPriority & (uint32_t)((1UL << (PreemptPriorityBits)) - 1UL)) << SubPriorityBits) |
- 800104c:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
+ 800104c:	f04f 32ff 	mov.w	r2, #4294967295
  8001050:	69bb      	ldr	r3, [r7, #24]
  8001052:	fa02 f303 	lsl.w	r3, r2, r3
  8001056:	43da      	mvns	r2, r3
@@ -2697,7 +2697,7 @@ __STATIC_INLINE uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t P
  800105c:	697b      	ldr	r3, [r7, #20]
  800105e:	409a      	lsls	r2, r3
            ((SubPriority     & (uint32_t)((1UL << (SubPriorityBits    )) - 1UL)))
- 8001060:	f04f 31ff 	mov.w	r1, #4294967295	; 0xffffffff
+ 8001060:	f04f 31ff 	mov.w	r1, #4294967295
  8001064:	697b      	ldr	r3, [r7, #20]
  8001066:	fa01 f303 	lsl.w	r3, r1, r3
  800106a:	43d9      	mvns	r1, r3
@@ -2742,7 +2742,7 @@ __STATIC_INLINE uint32_t SysTick_Config(uint32_t ticks)
  8001098:	6053      	str	r3, [r2, #4]
   NVIC_SetPriority (SysTick_IRQn, (1UL << __NVIC_PRIO_BITS) - 1UL); /* set Priority for Systick Interrupt */
  800109a:	210f      	movs	r1, #15
- 800109c:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
+ 800109c:	f04f 30ff 	mov.w	r0, #4294967295
  80010a0:	f7ff ff90 	bl	8000fc4 <__NVIC_SetPriority>
   SysTick->VAL   = 0UL;                                             /* Load the SysTick Counter Value */
  80010a4:	4b05      	ldr	r3, [pc, #20]	; (80010bc <SysTick_Config+0x40>)

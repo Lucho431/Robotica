@@ -66,7 +66,7 @@ uint8_t sensores_dist = 0;
 
 //variables del HC-SR04
 uint16_t desbordeTIM3 = 0; //desborda cada 42 us.
-uint16_t desbordeTIM4 = 0; //desborda cada 10 ms.
+uint16_t desbordeSysTick = 0; //desborda cada 10 ms.
 uint32_t ic1 = 0, ic2 = 0; //capturas de los flancos
 uint16_t cuentasDesbordes = 0;
 uint32_t cuentaPulsos = 0;
@@ -148,39 +148,39 @@ int main(void)
   while (1)
   {
 	  switch (statusBurst){
-	  	  case 0:
+		  case 0:
 
-	  		  if (desbordeTIM3 < 3572) break; //3572 = 150 ms aprox; 2380 = 100 ms aprox.
+			  if (desbordeTIM3 < 3572) break; //3572 = 150 ms aprox; 2380 = 100 ms aprox.
 
-	  		  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 1);
 
-	  		  delayTrig = 10 + (uint8_t)__HAL_TIM_GET_COUNTER (&htim3);
-	  		  if (delayTrig > 32){
-	  			  delayTrig -= 32;
-	  			  while (__HAL_TIM_GET_COUNTER (&htim3) > 32);
-	  		  }
-	  		  while (__HAL_TIM_GET_COUNTER (&htim3) < delayTrig);
+			  delayTrig = 10 + (uint8_t)__HAL_TIM_GET_COUNTER (&htim3);
+			  if (delayTrig > 32){
+				  delayTrig -= 32;
+				  while (__HAL_TIM_GET_COUNTER (&htim3) > 32);
+			  }
+			  while (__HAL_TIM_GET_COUNTER (&htim3) < delayTrig);
 
-	  		  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 0);
 
-	  		  desbordeTIM3 = 0;
+			  desbordeTIM3 = 0;
 
-	  		  statusBurst = 1;
+			  statusBurst = 1;
 		  break;
-	  	  case 1:
+		  case 1:
 
-	  		  if (desbordeTIM3 > 595){ // 25 ms.
-	  			  statusBurst = 0;
-	  			  break;
-	  		  }
+			  if (desbordeTIM3 > 595){ // 25 ms.
+				  statusBurst = 0;
+				  break;
+			  }
 
-	  		  if (flagEco != 0){
-	  			  flagEco = 0;
-	  			  statusBurst = 2;
-	  		  }
+			  if (flagEco != 0){
+				  flagEco = 0;
+				  statusBurst = 2;
+			  }
 		  break;
-	  	  case 2:
-	  		  if (cuentasDesbordes != 0){
+		  case 2:
+			  if (cuentasDesbordes != 0){
 				  cuentaPulsos = 42 * cuentasDesbordes + ic2 - ic1;
 			  }
 
@@ -197,7 +197,7 @@ int main(void)
 	  } //fin switch (statusBurst)
 
 
-	  if (desbordeTIM4 > 21){
+	  if (desbordeSysTick > 21){
 		  encoder1 = __HAL_TIM_GET_COUNTER(&htim1);
 		  __HAL_TIM_SET_COUNTER(&htim1, 0);
 		  encoder2 = __HAL_TIM_GET_COUNTER(&htim2);
@@ -215,7 +215,7 @@ int main(void)
 			  TIM3->CCR2++;
 		  }
 
-		  desbordeTIM4 = 0;
+		  desbordeSysTick = 0;
 	  }
 
 
@@ -265,60 +265,59 @@ int main(void)
 					  break;
 			  } //end switch sensores_dist
 
-			  break;
-				  case ROTANDO_IZQ:
+		  break;
+		  case ROTANDO_IZQ:
 
-					  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-					  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
 
-					  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
-					  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
 
-					  switch (sensores_dist){
-						  case 0b111:
-							  status_movimiento = AVANZANDO;
-							  break;
-						  case 0b011:
-							  status_movimiento = ROTANDO_DER;
-						  default:
-							  break;
-					  } //end switch sensores_dist
-
+			  switch (sensores_dist){
+				  case 0b111:
+					  status_movimiento = AVANZANDO;
 					  break;
-						  case ROTANDO_DER:
-							  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
-							  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+				  case 0b011:
+					  status_movimiento = ROTANDO_DER;
+				  default:
+				  break;
+			  } //end switch sensores_dist
 
-							  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
-							  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+		  break;
+		  case ROTANDO_DER:
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
 
-							  switch (sensores_dist){
-								  case 0b111:
-									  status_movimiento = AVANZANDO;
-									  break;
-								  case 0b110:
-									  status_movimiento = ROTANDO_IZQ;
-								  default:
-									  break;
-							  } //end switch sensores_dist
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
 
-							  break;
-								  case RETROCEDIENDO:
-									  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-									  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+			  switch (sensores_dist){
+				  case 0b111:
+					  status_movimiento = AVANZANDO;
+				  break;
+				  case 0b110:
+					  status_movimiento = ROTANDO_IZQ;
+				  default:
+				  break;
+			  } //end switch sensores_dist
 
-									  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
-									  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
-									  break;
-								  case PIVOTE_IZQ_AVAN:
+			  break;
+			  case RETROCEDIENDO:
+				  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+				  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
 
-									  break;
-								  case PIVOTE_DER_AVAN:
+				  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
+				  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+			  break;
+			  case PIVOTE_IZQ_AVAN:
 
-								  default:
-									  break;
+			  break;
+			  case PIVOTE_DER_AVAN:
+
+			  default:
+			  break;
 	  } //fin switch status_movimiento
-
 
 
     /* USER CODE END WHILE */
@@ -374,7 +373,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	}
 
 	if (htim->Instance==TIM4){
-		desbordeTIM4++;
+		desbordeSysTick++;
 	}
 
 }

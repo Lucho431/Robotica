@@ -30,6 +30,18 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
+typedef enum{
+	QUIETO,
+	AVANZANDO,
+	RETROCEDIENDO,
+	ROTANDO_IZQ,
+	ROTANDO_DER,
+	PIVOTE_IZQ_AVAN,
+	PIVOTE_DER_AVAN,
+	PIVOTE_IZQ_RETR,
+	PIVOTE_DER_RETR,
+}T_MOV;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -44,6 +56,28 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+
+//variables de control
+T_MOV status_movimiento = QUIETO;
+T_MOV last_movimiento = QUIETO;
+uint8_t SI, SF, SD;
+
+uint8_t sensores_dist = 0;
+
+//variables del HC-SR04
+uint16_t desbordeTIM3 = 0; //desborda cada 42 us.
+uint16_t desbordeSysTick = 0; //desborda cada 1 ms.
+uint32_t ic1 = 0, ic2 = 0; //capturas de los flancos
+uint16_t cuentasDesbordes = 0;
+uint32_t cuentaPulsos = 0;
+uint8_t flagEco;
+uint8_t statusBurst = 0;
+uint8_t delayTrig = 0;
+uint16_t distancia = 400;
+int16_t encoder1 = 0;
+int16_t encoder2 = 0;
+
+//variables
 
 /* USER CODE END PV */
 
@@ -90,6 +124,19 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+  HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
+
+//  HAL_TIM_Base_Start_IT(&htim4);
+  HAL_TIM_Base_Start(&htim1); //encoder
+  HAL_TIM_Base_Start(&htim2); //encoder
+  HAL_TIM_Base_Start_IT(&htim3);
+
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+  HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_3);
+  HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_4);
+
 
   /* USER CODE END 2 */
 
@@ -97,6 +144,179 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  switch (statusBurst){
+		  case 0:
+
+			  if (desbordeTIM3 < 3572) break; //3572 = 150 ms aprox; 2380 = 100 ms aprox.
+
+			  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 1);
+
+			  delayTrig = 10 + (uint8_t)__HAL_TIM_GET_COUNTER (&htim3);
+			  if (delayTrig > 32){
+				  delayTrig -= 32;
+				  while (__HAL_TIM_GET_COUNTER (&htim3) > 32);
+			  }
+			  while (__HAL_TIM_GET_COUNTER (&htim3) < delayTrig);
+
+			  HAL_GPIO_WritePin(OUT_Trig_GPIO_Port, OUT_Trig_Pin, 0);
+
+			  desbordeTIM3 = 0;
+
+			  statusBurst = 1;
+		  break;
+		  case 1:
+
+			  if (desbordeTIM3 > 595){ // 25 ms.
+				  statusBurst = 0;
+				  break;
+			  }
+
+			  if (flagEco != 0){
+				  flagEco = 0;
+				  statusBurst = 2;
+			  }
+		  break;
+		  case 2:
+			  if (cuentasDesbordes != 0){
+				  cuentaPulsos = 42 * cuentasDesbordes + ic2 - ic1;
+			  }
+
+			  if (cuentaPulsos < 25000){
+				  distancia = cuentaPulsos * 34 / 2000;
+			  }else{
+				  distancia = 400;
+			  }
+
+			  statusBurst = 0;
+			  desbordeTIM3 = 0;
+		  break;
+
+	  } //fin switch (statusBurst)
+
+
+	  if (desbordeSysTick > 210){
+		  encoder1 = __HAL_TIM_GET_COUNTER(&htim1);
+		  __HAL_TIM_SET_COUNTER(&htim1, 0);
+		  encoder2 = __HAL_TIM_GET_COUNTER(&htim2);
+		  __HAL_TIM_SET_COUNTER(&htim2, 0);
+
+		  if (encoder1 > 5){
+			  TIM3->CCR1--;
+		  }else if (encoder2 < 5){
+			  TIM3->CCR1++;
+		  }
+
+		  if (encoder2 > 5){
+			  TIM3->CCR2--;
+		  }else if (encoder2 < 5){
+			  TIM3->CCR2++;
+		  }
+
+		  desbordeSysTick = 0;
+	  }
+
+
+
+	  //sensores_dist = SI << 2 | SF << 1 | SD (logica negativa)
+
+	  SI = (HAL_GPIO_ReadPin(IN_sensorL_GPIO_Port, IN_sensorL_Pin)) ;
+	  SD = HAL_GPIO_ReadPin(IN_sensorR_GPIO_Port, IN_sensorR_Pin);
+	  if (distancia < 25) SF = 0; else SF = 1;
+
+	  sensores_dist = SI << 2 | SF << 1 | SD;
+
+
+
+
+	  switch (status_movimiento) {
+		  case QUIETO:
+
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
+
+			  status_movimiento = AVANZANDO;
+			  break;
+		  case AVANZANDO:
+
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
+
+			  switch (sensores_dist) {
+				  case 0b110:
+				  case 0b101:
+				  case 0b100:
+				  case 0b000:
+					  status_movimiento = ROTANDO_IZQ;
+					  break;
+				  case 0b011:
+				  case 0b001:
+					  status_movimiento = ROTANDO_DER;
+					  break;
+				  default:
+					  break;
+			  } //end switch sensores_dist
+
+		  break;
+		  case ROTANDO_IZQ:
+
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 1);
+
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 0);
+
+			  switch (sensores_dist){
+				  case 0b111:
+					  status_movimiento = AVANZANDO;
+					  break;
+				  case 0b011:
+					  status_movimiento = ROTANDO_DER;
+				  default:
+				  break;
+			  } //end switch sensores_dist
+
+		  break;
+		  case ROTANDO_DER:
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 0);
+			  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+
+			  switch (sensores_dist){
+				  case 0b111:
+					  status_movimiento = AVANZANDO;
+				  break;
+				  case 0b110:
+					  status_movimiento = ROTANDO_IZQ;
+				  default:
+				  break;
+			  } //end switch sensores_dist
+
+			  break;
+			  case RETROCEDIENDO:
+				  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+				  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in4_Pin, 0);
+
+				  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in2_Pin, 1);
+				  HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in3_Pin, 1);
+			  break;
+			  case PIVOTE_IZQ_AVAN:
+
+			  break;
+			  case PIVOTE_DER_AVAN:
+
+			  default:
+			  break;
+	  } //fin switch status_movimiento
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -143,6 +363,31 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if (htim->Instance==TIM3){
+		desbordeTIM3++;
+	}
+
+//	if (htim->Instance==TIM4){
+//		desbordeSysTick++;
+//	}
+
+}
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
+	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3){
+		//HAL_TIM_ReadCapturedValue(htim, HAL_TIM_ACTIVE_CHANNEL_3);
+		ic1 = htim->Instance->CCR3;
+		desbordeTIM3 = 0;
+	}
+
+	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4){
+		ic2 = htim->Instance->CCR4;
+		cuentasDesbordes = desbordeTIM3;
+		flagEco = 1;
+	}
+}
 
 /* USER CODE END 4 */
 
