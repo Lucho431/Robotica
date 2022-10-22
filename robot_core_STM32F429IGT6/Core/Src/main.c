@@ -30,6 +30,7 @@
 #include "comandosUart.h"
 #include "mpu_9265_lfs.h"
 #include "stdlib.h"
+#include "math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -82,6 +83,11 @@ uint8_t last_button = 1;
 //movimiento//
 T_MOV status_movimiento = QUIETO;
 T_MOV last_movimiento = QUIETO;
+
+float magX, magY;
+float direccion_f32;
+int16_t direccion_i16;
+
 
 uint16_t avance_cant = 0;
 uint16_t retroceso_cant = 0;
@@ -939,7 +945,21 @@ void check_rxUart (void){
 			txUart[3] = '\0';
 			HAL_UART_Transmit_IT(&huart7, txUart, 4);
 		break;
+		case COORD_ANG:
+			mpu9265_Read_Magnet(&mpu9265);
+			magX = mpu9265.Magnet_X_RAW;
+			magY = mpu9265.Magnet_Y_RAW;
 
+			direccion_f32 = atan2f(magY, magX);
+			direccion_f32 *= (180.0/M_PI);
+			direccion_i16 = direccion_f32/180;
+
+			txUart[0] = COORD_ANG;
+			txUart[1] = (uint8_t)(direccion_i16 >> 8);
+			txUart[2] = (uint8_t)(direccion_i16 & 0xFF);
+			txUart[3] = '\0';
+			HAL_UART_Transmit_IT(&huart7, txUart, 4);
+		break;
 
 	} //end switch rxUart[0]
 
