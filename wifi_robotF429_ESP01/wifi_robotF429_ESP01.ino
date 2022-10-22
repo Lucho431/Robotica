@@ -145,6 +145,14 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		Serial.write (cmdFrame, 4);
 		return;
 	}
+	
+	if ( !strcmp(pl, "d_giro") ){//si recibe por MQTT el comando "auto"
+		//Serial.print ("auto");
+		cmdFrame[0] = COORD_ANG;
+		cmdFrame[3] = '\0';
+		Serial.write (cmdFrame, 4);
+		return;
+	}
 
 } //fin callback()
 
