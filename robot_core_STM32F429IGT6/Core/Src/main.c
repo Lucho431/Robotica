@@ -28,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "comandosUart.h"
+#include "comunicacionUART.h"
 #include "mpu_9265_lfs.h"
 #include "stdlib.h"
 #include "math.h"

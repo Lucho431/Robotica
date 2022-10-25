@@ -23,6 +23,7 @@
 
 typedef enum{
 	//cmd base:
+	NO_CMD = 0x00, 	//comando nulo
 	HOLA = 0x01, 	//mensaje inicial
 	OK_,			//confirmación de recepcion
 	CANCEL_,		//instrucción de cancelación

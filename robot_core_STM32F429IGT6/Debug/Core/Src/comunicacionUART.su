@@ -1,0 +1,2 @@
+../Core/Src/comunicacionUART.c:33:6:controlRxTxUART	16	static
+../Core/Src/comunicacionUART.c:150:6:iniciaInstruccion	8	static
