@@ -188,7 +188,7 @@ void mpu9265_Init(I2C_HandleTypeDef* i2c_handler){
 	HAL_I2C_Mem_Read(hi2c_mpu, AK8963_ADDRESS << 1, WHO_AM_I_AK8963, 1, &check, 1, 1000);
 	HAL_Delay(1);
 	if (check == 0X48){ //successfull respond
-		data = 0B00110;// 0b10110: 0001 (MSB, 16 bit resolution) 0110 (LSB, 100Hz sample rate).
+		data = 0B10110;// 0b10110: 0001 (MSB, 16 bit resolution) 0110 (LSB, 100Hz sample rate).
 		HAL_I2C_Mem_Write(hi2c_mpu, AK8963_ADDRESS << 1, AK8963_CNTL, 1, &data, 1, 1000); //
 	}else{
 		//Error_Handler();

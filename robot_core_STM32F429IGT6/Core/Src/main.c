@@ -827,6 +827,9 @@ void encoders (void){
 
 	TIM4->CCR1 += velL - encoderL;
 
+//	if (TIM4->CCR1 < 62) TIM4->CCR1 = 62;
+//	if (TIM4->CCR1 > 82) TIM4->CCR1 = 82;
+
 //	if (encoderR > velR){
 //		if (TIM4->CCR2 > 45)
 //			TIM4->CCR2--;
@@ -836,6 +839,8 @@ void encoders (void){
 //	}
 
 	TIM4->CCR2 += velR - encoderR;
+//	if (TIM4->CCR2 < 62) TIM4->CCR2 = 62;
+//	if (TIM4->CCR2 > 82) TIM4->CCR2 = 82;
 
 	acum_encoderL += encoderL;
 	acum_encoderR += encoderR;
@@ -953,7 +958,13 @@ void check_rxUart (void){
 
 			direccion_f32 = atan2f(magY, magX);
 			direccion_f32 *= (180.0/M_PI);
+//			direccion_i16 = direccion_f32/180;
+			direccion_i16 = direccion_f32;
+			direccion_i16 -= 138;
+
+			direccion_f32 *= (180.0/M_PI);
 			direccion_i16 = direccion_f32/180;
+
 
 			txUart[0] = COORD_ANG;
 			txUart[1] = (uint8_t)(direccion_i16 >> 8);
