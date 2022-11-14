@@ -160,7 +160,18 @@
 //#define MPU9250_ADDRESS 0x69  // Device address when ADO = 1
 #define AK8963_ADDRESS 0x0C   //  Address of magnetometer
 
+
+
+////////VARIABLES////////
 I2C_HandleTypeDef* hi2c_mpu;
+
+float calMagX; //x-axis sensitivity adjustment value.
+float calMagY; //y-axis sensitivity adjustment value.
+float calMagZ; //z-axis sensitivity adjustment value.
+
+
+
+
 
 void mpu9265_Init(I2C_HandleTypeDef* i2c_handler){
 	uint8_t check, data;
@@ -183,13 +194,42 @@ void mpu9265_Init(I2C_HandleTypeDef* i2c_handler){
 		//Error_Handler();
 	}
 
+	//magnetometer//
 	data = 0b10; //i2c bypass bit, in INT_PIN_CFG reg. (made to reach the magnetometer)
 	HAL_I2C_Mem_Write(hi2c_mpu, MPU9250_ADDRESS << 1, INT_PIN_CFG, 1, &data, 1, 1000);
 	HAL_I2C_Mem_Read(hi2c_mpu, AK8963_ADDRESS << 1, WHO_AM_I_AK8963, 1, &check, 1, 1000);
 	HAL_Delay(1);
 	if (check == 0X48){ //successfull respond
-		data = 0B10110;// 0b10110: 0001 (MSB, 16 bit resolution) 0110 (LSB, 100Hz sample rate).
-		HAL_I2C_Mem_Write(hi2c_mpu, AK8963_ADDRESS << 1, AK8963_CNTL, 1, &data, 1, 1000); //
+
+		//Power down magnetometer
+		data = 0x00;
+		HAL_I2C_Mem_Write(&hi2c2, AK8963_ADDRESS << 1, AK8963_CNTL, 1, &data, 1, 1000);
+		HAL_Delay(100);
+
+		//Enter Fuse ROM access mode
+		data = 0x0F; //Fuse ROM access mode
+		HAL_I2C_Mem_Write(&hi2c2, AK8963_ADDRESS << 1, AK8963_CNTL, 1, &data, 1, 1000); //Control 1 register
+		HAL_Delay(100);
+
+		//Read the x-, y-, and z-axis calibration values
+		uint8_t rawMagCalData[3];
+		HAL_I2C_Mem_Read(&hi2c2, AK8963_ADDRESS << 1, AK8963_ASAX, 1, &rawMagCalData[0], 3, 1000); //Sensitivity Adjustment values registers (read-only)
+		calMagX =  (float)(rawMagCalData[0] - 128)/256. + 1.;   // Return x-axis sensitivity adjustment values, etc.
+		calMagY =  (float)(rawMagCalData[1] - 128)/256. + 1.;
+		calMagZ =  (float)(rawMagCalData[2] - 128)/256. + 1.;
+		HAL_Delay(100);
+
+		//Power down magnetometer
+		data = 0x00;
+		HAL_I2C_Mem_Write(&hi2c2, AK8963_ADDRESS << 1, AK8963_CNTL, 1, &data, 1, 1000);
+		HAL_Delay(100);
+
+		//Set magnetometer data resolution and sample ODR
+		data = 0b10010; // 0b10110: 0001 (MSB, 16 bit resolution) 0010 (LSB, 8Hz sample rate (Continuous measurement mode 1) ).
+//		data = 0B10110; // 0b10110: 0001 (MSB, 16 bit resolution) 0110 (LSB, 100Hz sample rate (Continuous measurement mode 2) ).
+		HAL_I2C_Mem_Write(&hi2c2, AK8963_ADDRESS << 1, AK8963_CNTL, 1, &writeData, 1, 1000);
+		HAL_Delay(100);
+
 	}else{
 		//Error_Handler();
 	}
@@ -222,9 +262,9 @@ void mpu9265_Read_Magnet(mpuData_t* mpuData){
 
 	uint8_t ready, data[7];
 
-	HAL_I2C_Mem_Read(hi2c_mpu, AK8963_ADDRESS << 1, AK8963_ST1, 1, &ready, 1, 1000);
+	HAL_I2C_Mem_Read(hi2c_mpu, AK8963_ADDRESS << 1, AK8963_ST1, 1, &ready, 1, 1000); //bit 0 in "1".
 
-	if (ready){
+	if (ready){ //bit 0 from Status 1 register in "1".
 		HAL_I2C_Mem_Read(hi2c_mpu, AK8963_ADDRESS << 1, AK8963_XOUT_L, 1, data, 7, 1000);
 		if (!(data[6] & 0x08)){// Check if magnetic sensor overflow set, if not then report data
 			mpuData->Magnet_X_RAW = (uint16_t) ( data[1]<<8 | data[0] );
