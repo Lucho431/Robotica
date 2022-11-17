@@ -1,4 +1,4 @@
-mpu_9265_lfs.c:165:6:mpu9265_Init	40	static
-mpu_9265_lfs.c:201:6:mpu9265_Read_Accel	40	static
-mpu_9265_lfs.c:211:6:mpu9265_Read_Gyro	40	static
-mpu_9265_lfs.c:221:6:mpu9265_Read_Magnet	40	static
+../Core/Src/mpu_9265_lfs.c:176:6:mpu9265_Init	40	static
+../Core/Src/mpu_9265_lfs.c:241:6:mpu9265_Read_Accel	40	static
+../Core/Src/mpu_9265_lfs.c:251:6:mpu9265_Read_Gyro	40	static
+../Core/Src/mpu_9265_lfs.c:261:6:mpu9265_Read_Magnet	40	static

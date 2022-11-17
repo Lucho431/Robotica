@@ -30,28 +30,28 @@ typedef enum{
 	CMD_ERROR,		//recepcion fallida
 	MODO,			//modo de funcionamiento (manual o automático)
 	//posicionamiento:
-	COORD_X,		//coordenada X (en pulsos del encoder)
-	COORD_Y,		//coordenada Y (un pulsos del encoder)
-	COORD_ANG,		//angulo del robot (Norte = 0 por omisión)
-	DESTINO,		//comndo de siguiente coordenada de destino
-	HOME,			//lectura de la coordenada de HOME
-	GO_HOME,		//dirigirse a la coordenada de HOME
-	SET_HOME,		//definir como coordenada de HOME a la posición actual
+	COORD_X,		//coordenada X (en pulsos del encoder) (consulta o parte de una trama)
+	COORD_Y,		//coordenada Y (un pulsos del encoder) (consulta o parte de una trama)
+	COORD_ANG,		//angulo del robot (Norte = 0 por omisión) (consulta o parte de una trama)
+	DESTINO,		//comndo de siguiente coordenada de destino (instruccion)
+	HOME,			//lectura de la coordenada de HOME (consulta)
+	GO_HOME,		//dirigirse a la coordenada de HOME (instruccion)
+	SET_HOME,		//definir como coordenada de HOME a la posición actual (instruccion)
 	//comando de movimiento:
-	AVANCE,			//envia instrucción de avance (modo manual)
-	GIRO_IZQ,		//envia instrucción de girar a la izquierda (modo manual)
-	GIRO_DER,		//envia instrucción de girar a la derecha (modo manual)
-	RETROCEDE,		//envia instrucción de retroceder (modo manual)
-	STOP,			//envia instrucción de detenerse (modo manual)
+	AVANCE,			//envia instrucción de avance (modo manual) (instruccion)
+	GIRO_IZQ,		//envia instrucción de girar a la izquierda (modo manual) (instruccion)
+	GIRO_DER,		//envia instrucción de girar a la derecha (modo manual) (instruccion)
+	RETROCEDE,		//envia instrucción de retroceder (modo manual) (instruccion)
+	STOP,			//envia instrucción de detenerse (modo manual) (instruccion)
 	//lecturas de movimiento:
-	ACEL_AVANCE,	//lectura de aceleración en sentido avance	
-	DIST_AVANCE,	//lectura de distancia avanzada
-	VEL_AVANCE,		//lectura de velocidad de avance
-	ACEL_GIRO,		//lectura de aceleración de giro (izq = sentido positivo)
-	DIST_GIRO,		//lectura de angulo de giro (izq = sentido positivo)
-	VEL_GIRO,		//lectura de velocidad de giro (izq = sentido positivo)
-	DELTA_ENC_L,	//delta del encoder izquierdo
-	DELTA_ENC_R,	//delta del encoder derecho
+	ACEL_AVANCE,	//lectura de aceleración en sentido avance (consulta)
+	DIST_AVANCE,	//lectura de distancia avanzada (consulta)
+	VEL_AVANCE,		//lectura de velocidad de avance (consulta)
+	ACEL_GIRO,		//lectura de aceleración de giro (izq = sentido positivo) (consulta)
+	DIST_GIRO,		//lectura de angulo de giro (izq = sentido positivo) (consulta)
+	VEL_GIRO,		//lectura de velocidad de giro (izq = sentido positivo) (consulta)
+	DELTA_ENC_L,	//delta del encoder izquierdo (consulta)
+	DELTA_ENC_R,	//delta del encoder derecho (consulta)
 }T_CMD;
 
 typedef enum{
