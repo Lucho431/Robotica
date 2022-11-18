@@ -617,6 +617,9 @@ void movimientoRC (void){
 			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
 			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
 
+			velL = 0;
+			velR = 0;
+
 			if (avance_cant != 0){
 				acum_encoderL = 0;
 				acum_encoderR = 0;
@@ -653,6 +656,9 @@ void movimientoRC (void){
 
 			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
 			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+
+			velL = 5;
+			velR = 5;
 
 			encoders();
 
@@ -692,6 +698,9 @@ void movimientoRC (void){
 			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
 			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
 
+			velL = 5;
+			velR = 5;
+
 			encoders();
 
 			if (giroIzq_cant > ((acum_encoderL + acum_encoderR) >> 1) ) break;
@@ -729,6 +738,9 @@ void movimientoRC (void){
 			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
 			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 1);
 
+			velL = 5;
+			velR = 5;
+
 			encoders();
 
 			if (giroDer_cant > ((acum_encoderL + acum_encoderR) >> 1) ) break;
@@ -765,6 +777,9 @@ void movimientoRC (void){
 
 			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
 			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 1);
+
+			velL = 5;
+			velR = 5;
 
 			encoders();
 
@@ -960,10 +975,12 @@ void check_rxUart (void){
 			direccion_f32 *= (180.0/M_PI);
 //			direccion_i16 = direccion_f32/180;
 			direccion_i16 = direccion_f32;
-			direccion_i16 -= 138;
-
-			direccion_f32 *= (180.0/M_PI);
-			direccion_i16 = direccion_f32/180;
+			direccion_i16 -= 129;
+			direccion_i16 = -direccion_i16;
+			if (magX > 0) direccion_i16 = -direccion_i16;
+//			if (magX < magY) direccion_i16 = -direccion_i16;
+//			direccion_f32 *= (180.0/M_PI);
+//			direccion_i16 = direccion_f32/180;
 
 
 			txUart[0] = COORD_ANG;

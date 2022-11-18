@@ -146,7 +146,7 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		return;
 	}
 	
-	if ( !strcmp(pl, "d_giro") ){//si recibe por MQTT el comando "auto"
+	if ( !strcmp(pl, "d_giro") ){//si recibe por MQTT el comando "d_giro"
 		//Serial.print ("auto");
 		cmdFrame[0] = COORD_ANG;
 		cmdFrame[3] = '\0';
@@ -270,7 +270,8 @@ void serialCom_handler(void){
 	sizeCmd = Serial.readBytes(rxUart, RXUART_BUFFER_SIZE);
 	//Serial.println(rxUart);
 	//if (rxUart == "hola"){
-	if (!strcmp(rxUart, "hola")){
+	//if (!strcmp(rxUart, "hola")){
+	if(rxUart[0] == HOLA){
 		client.publish("Info/Nodo_ESP01", "STM32 dice hola");
 		client.flush();
 		return;
@@ -292,6 +293,14 @@ void serialCom_handler(void){
 	if (rxUart[0] == VEL_AVANCE){
 		sprintf(texto, "%d", (uint16_t) ( (rxUart[1] << 8) |  rxUart[2]) );
 		client.publish("Info/Nodo_ESP01/VEL_AVANCE", texto);
+		client.flush();
+		return;
+	}
+	
+	//COORD_ANG
+	if (rxUart[0] == COORD_ANG){
+		sprintf(texto, "%d", (int16_t) ( (rxUart[1] << 8) |  rxUart[2]) );
+		client.publish("Info/Nodo_ESP01/COORD_ANG", texto);
 		client.flush();
 		return;
 	}
