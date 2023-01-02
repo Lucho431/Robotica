@@ -27,7 +27,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stdlib.h"
+#include "math.h"
 
+#include "mpu_9265_lfs.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,6 +55,18 @@ uint16_t set_pwm_R = 50;
 
 uint16_t cuenta_pulsosL = 0;
 uint16_t cuenta_pulsosR = 0;
+
+uint8_t desbordes;
+
+float magX, magY;
+int16_t MAX_magX = -10000, MAX_magY = -10000, MIN_magX = 10000, MIN_magY = 10000;
+int16_t media_magX, media_magY;
+float direccion_f32;
+int16_t direccion_i16;
+mpuData_t mpu9265;
+
+int32_t deltaT;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,8 +123,10 @@ int main(void)
 
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1); //rueda izquierda.
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2); //rueda derecha.
-  TIM4->CCR1 = set_pwm_L;
-  TIM4->CCR2 = set_pwm_R;
+//  TIM4->CCR1 = set_pwm_L;
+//  TIM4->CCR2 = set_pwm_R;
+  TIM4->CCR1 = 0;
+  TIM4->CCR2 = 0;
 
   //avanza
   HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
@@ -119,7 +136,9 @@ int main(void)
   HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
 
 
-  HAL_TIM_Base_Start_IT(&htim7); //desborda cada 10 ms.
+  HAL_TIM_Base_Start_IT(&htim7); //desborda cada 1 s.
+
+  mpu9265_Init(&hi2c1);
 
   /* USER CODE END 2 */
 
@@ -127,8 +146,50 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  TIM4->CCR1 = set_pwm_L;
-	  TIM4->CCR2 = set_pwm_R;
+//	  TIM4->CCR1 = set_pwm_L;
+//	  TIM4->CCR2 = set_pwm_R;
+
+	  if (desbordes != 0){
+
+		  deltaT = __HAL_TIM_GET_COUNTER(&htim7);
+
+		  mpu9265_Read_Magnet(&mpu9265);
+		  magX = (float) (mpu9265.Magnet_X_RAW + 388.0); //media empirica
+		  magY = (float) (mpu9265.Magnet_Y_RAW - 234.0); //media empirica
+/*
+		  if (magX > MAX_magX) MAX_magX = magX;
+		  if (magX < MIN_magX) MIN_magX = magX;
+		  if (magY > MAX_magY) MAX_magY = magY;
+		  if (magY < MIN_magY) MIN_magY = magY;
+
+		  media_magX = (MAX_magX + MIN_magX) / 2;
+		  media_magY = (MAX_magY + MIN_magY) / 2;
+*/
+
+		  direccion_f32 = atan2f(magY, magX);
+		  direccion_f32 *= (180.0/M_PI);
+		  //			direccion_i16 = direccion_f32/180;
+//		  direccion_i16 = direccion_f32;
+//		  direccion_i16 -= 129;
+//		  direccion_i16 = -direccion_i16;
+//		  if (magX > 0) direccion_i16 = -direccion_i16;
+		  //			if (magX < magY) direccion_i16 = -direccion_i16;
+		  //			direccion_f32 *= (180.0/M_PI);
+		  //			direccion_i16 = direccion_f32/180;
+
+
+		  deltaT = __HAL_TIM_GET_COUNTER(&htim7) - deltaT;
+
+//		  txUart[0] = COORD_ANG;
+//		  txUart[1] = (uint8_t)(direccion_i16 >> 8);
+//		  txUart[2] = (uint8_t)(direccion_i16 & 0xFF);
+//		  txUart[3] = '\0';
+//		  HAL_UART_Transmit_IT(&huart7, txUart, 4);
+		  desbordes = 0;
+	  }
+
+
+
 
     /* USER CODE END WHILE */
 
@@ -191,10 +252,12 @@ void SystemClock_Config(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if (htim->Instance==TIM7){
-		cuenta_pulsosL = __HAL_TIM_GET_COUNTER(&htim3);
-		cuenta_pulsosR = __HAL_TIM_GET_COUNTER(&htim2);
-		__HAL_TIM_SET_COUNTER(&htim3, 0);
-		__HAL_TIM_SET_COUNTER(&htim2, 0);
+//		cuenta_pulsosL = __HAL_TIM_GET_COUNTER(&htim3);
+//		cuenta_pulsosR = __HAL_TIM_GET_COUNTER(&htim2);
+//		__HAL_TIM_SET_COUNTER(&htim3, 0);
+//		__HAL_TIM_SET_COUNTER(&htim2, 0);
+
+		desbordes++;
 
 	}
 }
