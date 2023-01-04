@@ -966,24 +966,19 @@ void check_rxUart (void){
 			txUart[3] = '\0';
 			HAL_UART_Transmit_IT(&huart7, txUart, 4);
 		break;
-		case COORD_ANG:
+		case DIST_GIRO:
 			mpu9265_Read_Magnet(&mpu9265);
 			magX = mpu9265.Magnet_X_RAW;
 			magY = mpu9265.Magnet_Y_RAW;
 
+			magX = (float) (mpu9265.Magnet_X_RAW + 388.0); //media empirica
+			magY = (float) (mpu9265.Magnet_Y_RAW - 234.0); //media empirica
 			direccion_f32 = atan2f(magY, magX);
 			direccion_f32 *= (180.0/M_PI);
-//			direccion_i16 = direccion_f32/180;
+
 			direccion_i16 = direccion_f32;
-			direccion_i16 -= 129;
-			direccion_i16 = -direccion_i16;
-			if (magX > 0) direccion_i16 = -direccion_i16;
-//			if (magX < magY) direccion_i16 = -direccion_i16;
-//			direccion_f32 *= (180.0/M_PI);
-//			direccion_i16 = direccion_f32/180;
 
-
-			txUart[0] = COORD_ANG;
+			txUart[0] = DIST_GIRO;
 			txUart[1] = (uint8_t)(direccion_i16 >> 8);
 			txUart[2] = (uint8_t)(direccion_i16 & 0xFF);
 			txUart[3] = '\0';

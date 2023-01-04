@@ -146,9 +146,29 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		return;
 	}
 	
-	if ( !strcmp(pl, "d_giro") ){//si recibe por MQTT el comando "d_giro"
+	if ( !strcmp(pl, "ang+90") ){//si recibe por MQTT el comando "d_giro"
 		//Serial.print ("auto");
 		cmdFrame[0] = COORD_ANG;
+		cmdFrame[1] = 90;
+		cmdFrame[2] = 0;
+		cmdFrame[3] = '\0';
+		Serial.write (cmdFrame, 4);
+		return;
+	}
+	
+	if ( !strcmp(pl, "ang-90") ){//si recibe por MQTT el comando "d_giro"
+		//Serial.print ("auto");
+		cmdFrame[0] = COORD_ANG;
+		cmdFrame[1] = 0;
+		cmdFrame[2] = 90;
+		cmdFrame[3] = '\0';
+		Serial.write (cmdFrame, 4);
+		return;
+	}
+	
+	if ( !strcmp(pl, "d_giro") ){//si recibe por MQTT el comando "d_giro"
+		//Serial.print ("auto");
+		cmdFrame[0] = DIST_GIRO;
 		cmdFrame[3] = '\0';
 		Serial.write (cmdFrame, 4);
 		return;
@@ -298,7 +318,7 @@ void serialCom_handler(void){
 	}
 	
 	//COORD_ANG
-	if (rxUart[0] == COORD_ANG){
+	if (rxUart[0] == DIST_GIRO){
 		sprintf(texto, "%d", (int16_t) ( (rxUart[1] << 8) |  rxUart[2]) );
 		client.publish("Info/Nodo_ESP01/COORD_ANG", texto);
 		client.flush();
