@@ -51,6 +51,8 @@ uint16_t reconnect_time = 0; // 1 * 10ms
 //variable de texto
 char texto[50];
 
+//variables de comando
+uint8_t cmdEnProceso = 0;
 
 void timer_update(void){
     
@@ -171,6 +173,24 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		cmdFrame[0] = DIST_GIRO;
 		cmdFrame[3] = '\0';
 		Serial.write (cmdFrame, 4);
+		return;
+	}
+	
+	if ( !strcmp(pl, "home") ){//si recibe por MQTT el comando "home"
+		cmdFrame[0] = HOME;
+		cmdFrame[3] = '\0';
+		cmdEnProceso = 1;
+		Serial.write (cmdFrame, 4);
+		//iniciaInstruccion (HOME);
+		return;
+	}
+	
+	if ( !strcmp(pl, "set_home") ){//si recibe por MQTT el comando "set_home"
+		cmdFrame[0] = SET_HOME;
+		cmdFrame[3] = '\0';
+		cmdEnProceso = 1;
+		Serial.write (cmdFrame, 4);
+		//iniciaInstruccion (HOME);
 		return;
 	}
 
