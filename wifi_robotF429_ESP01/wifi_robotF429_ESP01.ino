@@ -2,6 +2,7 @@
 #include <PubSubClient.h>
 
 #include "comandosUart.h"
+#include "comunicacionUART_ESP01.h"
 
 #define RXUART_BUFFER_SIZE 4
 
@@ -50,6 +51,7 @@ uint16_t reconnect_time = 0; // 1 * 10ms
 
 //variable de texto
 char texto[50];
+char txtTopic[50];
 
 //variables de comando
 uint8_t cmdEnProceso = 0;
@@ -181,7 +183,7 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		cmdFrame[3] = '\0';
 		cmdEnProceso = 1;
 		Serial.write (cmdFrame, 4);
-		//iniciaInstruccion (HOME);
+		iniciaInstruccion (HOME);
 		return;
 	}
 	
@@ -190,7 +192,7 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		cmdFrame[3] = '\0';
 		cmdEnProceso = 1;
 		Serial.write (cmdFrame, 4);
-		//iniciaInstruccion (HOME);
+		iniciaInstruccion (HOME);
 		return;
 	}
 
@@ -309,6 +311,9 @@ void connections_handler() {
 void serialCom_handler(void){
 	sizeCmd = Serial.readBytes(rxUart, RXUART_BUFFER_SIZE);
 	//Serial.println(rxUart);
+	
+	//controlRxTxUART (rxUart);
+	
 	//if (rxUart == "hola"){
 	//if (!strcmp(rxUart, "hola")){
 	if(rxUart[0] == HOLA){
@@ -358,12 +363,14 @@ void setup() {
 	Serial.begin(115200);
     randomSeed(micros());
     
-    Serial.println("algo");
+    //Serial.println("algo");
     
     client.setServer(mqtt_server, 1883);
     client.setCallback(callback_MQTT);
     
 	connections_handler();
+	
+	init_controlRxTx (txtTopic, texto);
 	
 	cmdFrame[0] = HOLA;
 	cmdFrame[3] = '\0';
@@ -376,8 +383,13 @@ void loop() {
 	timer_update();
 	
 	if (Serial.available() > 0){
-		serialCom_handler();
-	}
+		//serialCom_handler();
+		sizeCmd = Serial.readBytes(rxUart, RXUART_BUFFER_SIZE);
+		if (controlRxTxUART (rxUart) != 0){
+			client.publish(txtTopic, texto);
+			client.flush();
+		}
+	} //end if Serial.available
 	
 	if (flag_tick){
 		if (reconnect_time) reconnect_time--;

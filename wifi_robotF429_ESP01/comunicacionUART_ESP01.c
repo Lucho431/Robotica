@@ -5,7 +5,8 @@
  *      Author: Luciano Salvatore
  */
 
-#include "comunicacionUART.h"
+#include <ESP8266WiFi.h>
+#include "comunicacionUART_ESP01.h"
 
 
 //////variables externas////////
@@ -19,27 +20,41 @@ extern uint8_t flag_encoders;
 ///////variables locales////////
 
 //UART_HandleTypeDef* uart_handler;
-
+//variables UART
 uint8_t tx [4];
 uint8_t* p_rx;
+//variables comandos
 T_CMD cmdEsperado = NO_CMD;
 T_CMD cmdActual = NO_CMD;
 uint8_t cmdSecuencia = 0; //contador decremental de tramas restantes de una instruccion
-
+//variables MQTT
+char* p_topic;
+char* p_txt;
+uint8_t flag_MQTT = 0;
+//variables coordenadas
+uint8_t stm_x;
+uint8_t stm_y;
+uint8_t stm_ang;
 
 ////prototipos de funciones/////
 
-void iniciaInstruccion(T_CMD);
+//void iniciaInstruccion(T_CMD);
 void continuaInstruccion(void);
 
 
-void controlRxTxUART (uint8_t rx[]){
+void init_controlRxTx (char topic[], char texto[]){
+	p_topic = topic[0];
+	p_txt = texto[0];
+} //end init_controlRxTx()
 
-	if (p_rx[3] != 0){
+uint8_t controlRxTxUART (uint8_t rx[]){
+
+	flag_MQTT = 0;
+	
+	if (rx[3] != 0){
 		tx[0] = CMD_ERROR;
 		tx[3] = '\0';
-		HAL_UART_Transmit_IT(uart_handler, tx, 4);
-		HAL_UART_Receive_IT(uart_handler, rx, 4);
+		Serial.write (tx, 4);
 		return;
 	}
 
@@ -52,41 +67,43 @@ void controlRxTxUART (uint8_t rx[]){
 	}
 
 	//HAL_UART_Receive_IT(uart_handler, rx, 4);
+	
+	return flag_MQTT;
 
 } //end controlRxTxUART ()
 
 
 void iniciaInstruccion (T_CMD cmdIni){
-
+	
 	switch (cmdIni){
 		case HOLA:
 			esp01Presente = 1;
 			cmdEsperado = NO_CMD;
 			tx[0] = HOLA;
 			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
+			//HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 
 		case MODO:
 			switch (p_rx[1]) {
 				case AUTOMATICO:
-					modoFuncionamiento = AUTOMATICO;
-					flag_encoders = 0;
+					//modoFuncionamiento = AUTOMATICO;
+					//flag_encoders = 0;
 					tx[0] = OK_;
 					tx[3] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 4);
+					//HAL_UART_Transmit_IT(uart_handler, tx, 4);
 					break;
 				case MANUAL:
 //					status_movimiento = QUIETO;
-					modoFuncionamiento = MANUAL;
+					//modoFuncionamiento = MANUAL;
 					tx[0] = OK_;
 					tx[3] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 4);
+					//HAL_UART_Transmit_IT(uart_handler, tx, 4);
 					break;
 				default:
 					tx[0] = CMD_ERROR;
 					tx[3] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 4);
+					//HAL_UART_Transmit_IT(uart_handler, tx, 4);
 			} //end switch p_rx[1]
 		break;
 		case HOME:
@@ -105,28 +122,28 @@ void iniciaInstruccion (T_CMD cmdIni){
 			cmdEsperado = NO_CMD;
 			tx[0] = OK_;
 			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
+			//HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 		case RETROCEDE:
 //			retroceso_cant += (uint16_t) (rx[2] + (rx[1] << 8));
 			cmdEsperado = NO_CMD;
 			tx[0] = OK_;
 			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
+			//HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 		case GIRO_IZQ:
 //			giroIzq_cant += (uint16_t) (rx[2] + (rx[1] << 8));
 			cmdEsperado = NO_CMD;
 			tx[0] = OK_;
 			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
+			//HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 		case GIRO_DER:
 //			giroDer_cant += (uint16_t) (rx[2] + (rx[1] << 8));
 			cmdEsperado = NO_CMD;
 			tx[0] = OK_;
 			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
+		//	HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 		case VEL_AVANCE:
 			cmdEsperado = NO_CMD;
@@ -137,7 +154,7 @@ void iniciaInstruccion (T_CMD cmdIni){
 //			tx[1] = (uint8_t)(mpu9265.Accel_X_RAW >> 8);
 //			tx[2] = (uint8_t)(mpu9265.Accel_X_RAW & 0xFF);
 			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
+			//HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 		case COORD_ANG:
 			cmdEsperado = NO_CMD;
@@ -160,12 +177,12 @@ void iniciaInstruccion (T_CMD cmdIni){
 			txUart[2] = (uint8_t)(direccion_i16 & 0xFF);
 			txUart[3] = '\0';
 			*/
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
+			//HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 		default:
 			tx[0] = CMD_ERROR;
 			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
+			//HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 	} //end switch (cmdEsperado)
 
@@ -189,21 +206,27 @@ void continuaInstruccion(void){
 		case HOME:
 			switch (cmdEsperado){
 				case COORD_X:
-					//almacena X
+					stm_x = p_rx[2]; //almacena X
 					tx[0] = OK_;
 					tx[3] = '\0';
 					cmdEsperado = COORD_Y;
 					//HAL_UART_Transmit_IT(uart_handler, tx, 4);
+					Serial.write (tx, 4);
 				break;
 				case COORD_Y:
-					//almacena Y
+					stm_y = p_rx[2]; //almacena Y
 					tx[0] = OK_;
 					tx[3] = '\0';
 					cmdEsperado = COORD_ANG;
 					//HAL_UART_Transmit_IT(uart_handler, tx, 4);
+					Serial.write (tx, 4);
 				break;
 				case COORD_ANG:
-					//almacena el angulo
+					stm_ang = p_rx[2]; //almacena el angulo
+					sprintf(p_topic, "Info/Nodo_ESP01/VEL_AVANCE");
+					sprintf(p_txt, "X=%d, Y=%d, Ang=%d", stm_x, stm_y, stm_ang);
+					flag_MQTT = 1;
+					
 					tx[0] = OK_;
 					tx[3] = '\0';
 					cmdActual = NO_CMD;
@@ -256,8 +279,3 @@ void continuaInstruccion(void){
 
 
 } //end continuaInstruccion()
-
-
-
-
-
