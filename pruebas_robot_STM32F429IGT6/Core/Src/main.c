@@ -67,6 +67,12 @@ mpuData_t mpu9265;
 
 int32_t deltaT;
 
+//variables comunicacion//
+uint8_t rxUart[4];
+uint8_t flag_cmd = 0;
+uint8_t txUart[4];
+uint8_t esp01Presente = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -146,9 +152,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  
 //	  TIM4->CCR1 = set_pwm_L;
 //	  TIM4->CCR2 = set_pwm_R;
-
+	  
+	  /*
+	  
 	  if (desbordes != 0){
 
 		  deltaT = __HAL_TIM_GET_COUNTER(&htim7);
@@ -156,7 +165,7 @@ int main(void)
 		  mpu9265_Read_Magnet(&mpu9265);
 		  magX = (float) (mpu9265.Magnet_X_RAW + 388.0); //media empirica
 		  magY = (float) (mpu9265.Magnet_Y_RAW - 234.0); //media empirica
-/*
+
 		  if (magX > MAX_magX) MAX_magX = magX;
 		  if (magX < MIN_magX) MIN_magX = magX;
 		  if (magY > MAX_magY) MAX_magY = magY;
@@ -164,7 +173,7 @@ int main(void)
 
 		  media_magX = (MAX_magX + MIN_magX) / 2;
 		  media_magY = (MAX_magY + MIN_magY) / 2;
-*/
+
 
 		  direccion_f32 = atan2f(magY, magX);
 		  direccion_f32 *= (180.0/M_PI);
@@ -186,11 +195,15 @@ int main(void)
 //		  txUart[3] = '\0';
 //		  HAL_UART_Transmit_IT(&huart7, txUart, 4);
 		  desbordes = 0;
+	  } //fin  if (desbordes != 0)
+	  
+	  */
+	  
+	  if (flag_cmd != 0){
+		  check_rxUart();
+		  flag_cmd = 0;
 	  }
-
-
-
-
+	  
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -260,6 +273,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		desbordes++;
 
 	}
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	flag_cmd = 1;
 }
 
 /* USER CODE END 4 */
