@@ -11,8 +11,15 @@
 #include "comandosUart.h"
 #include <Arduino.h>
 
-void init_controlRxTx (char [], char []);
-uint8_t controlRxTxUART (uint8_t []);
+typedef enum{
+	NO_ACC,
+	SEND_MQTT,
+	SEND_TXUART,
+	SEND_BOTH,
+}T_CTRL_COM;
+
+void init_controlRxTx (char[], char[], uint8_t[]);
+T_CTRL_COM controlRxTxUART (char []);
 void iniciaInstruccion (T_CMD);
 
 #endif /* INC_COMUNICACIONUART_H_ */

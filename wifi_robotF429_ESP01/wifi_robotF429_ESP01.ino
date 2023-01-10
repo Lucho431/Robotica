@@ -370,7 +370,7 @@ void setup() {
     
 	connections_handler();
 	
-	init_controlRxTx (txtTopic, texto);
+	init_controlRxTx (txtTopic, texto, cmdFrame);
 	
 	cmdFrame[0] = HOLA;
 	cmdFrame[3] = '\0';
@@ -385,10 +385,21 @@ void loop() {
 	if (Serial.available() > 0){
 		//serialCom_handler();
 		sizeCmd = Serial.readBytes(rxUart, RXUART_BUFFER_SIZE);
-		if (controlRxTxUART (rxUart) != 0){
-			client.publish(txtTopic, texto);
-			client.flush();
-		}
+		switch (controlRxTxUART (rxUart) ){
+			case SEND_MQTT:
+				client.publish(txtTopic, texto);
+				client.flush();
+			break;
+			case SEND_TXUART:
+				Serial.write (cmdFrame, 4);
+			break;
+			case SEND_BOTH:
+				Serial.write (cmdFrame, 4);
+				client.publish(txtTopic, texto);
+				client.flush();
+			default:
+			break;
+		} //end switch controlRxTxUART
 	} //end if Serial.available
 	
 	if (flag_tick){
