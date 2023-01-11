@@ -11,6 +11,7 @@
 #include "comandosUart.h"
 #include "main.h"
 
+void init_controlRxTx (UART_HandleTypeDef*);
 void controlRxTxUART (uint8_t []);
 
 #endif /* INC_COMUNICACIONUART_H_ */

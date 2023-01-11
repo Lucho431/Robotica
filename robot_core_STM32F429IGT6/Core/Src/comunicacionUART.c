@@ -14,6 +14,9 @@ extern T_MODO modoFuncionamiento;
 extern uint8_t esp01Presente;
 extern uint8_t flag_encoders;
 
+extern uint8_t pos_x;
+extern uint8_t pos_y;
+extern uint8_t pos_ang;
 
 ///////variables locales////////
 
@@ -29,6 +32,10 @@ uint8_t cmdSecuencia = 0; //contador decremental de tramas restantes de una inst
 ////prototipos de funciones/////
 void iniciaInstruccion(void);
 void continuaInstruccion(void);
+
+void init_controlRxTx (UART_HandleTypeDef* huart){
+	uart_handler = huart;
+} //end init_controlRxTx ()
 
 
 void controlRxTxUART (uint8_t rx[]){
@@ -49,7 +56,7 @@ void controlRxTxUART (uint8_t rx[]){
 		iniciaInstruccion();
 	}
 
-	HAL_UART_Receive_IT(uart_handler, rx, 4);
+	HAL_UART_Receive_IT(uart_handler, p_rx, 4);
 
 } //end controlRxTxUART ()
 
@@ -91,7 +98,7 @@ void iniciaInstruccion (void){
 			cmdActual = HOME;
 			tx[0] = COORD_X;
 			tx[1] = 0x0;
-			tx[2] = 0xFA;
+			tx[2] = pos_x;
 			tx[3] = '\0';
 			cmdEsperado = OK_;
 			cmdSecuencia = 2;
@@ -195,7 +202,7 @@ void continuaInstruccion(void){
 				case 2:
 					tx[0] = COORD_Y;
 					tx[1] = 0x0;
-					tx[2] = 0xFB;
+					tx[2] = pos_y;
 					tx[3] = '\0';
 					cmdSecuencia--;
 					HAL_UART_Transmit_IT(uart_handler, tx, 4);
@@ -203,7 +210,7 @@ void continuaInstruccion(void){
 				case 1:
 					tx[0] = COORD_ANG;
 					tx[1] = 0x0;
-					tx[2] = 0xFC;
+					tx[2] = pos_ang;
 					tx[3] = '\0';
 					cmdSecuencia--;
 					HAL_UART_Transmit_IT(uart_handler, tx, 4);
@@ -219,21 +226,21 @@ void continuaInstruccion(void){
 		case SET_HOME:
 			switch (cmdEsperado){
 				case COORD_X:
-					//recibi la coordenada X
+					pos_x = p_rx[1];//recibi la coordenada X
 					cmdEsperado = COORD_Y;
 					tx[0] = OK_;
 					tx[3] = '\0';
 					HAL_UART_Transmit_IT(uart_handler, tx, 4);
 				break;
 				case COORD_Y:
-					//recibi la coordenada Y
+					pos_y = p_rx[1];//recibi la coordenada Y
 					cmdEsperado = COORD_ANG;
 					tx[0] = OK_;
 					tx[3] = '\0';
 					HAL_UART_Transmit_IT(uart_handler, tx, 4);
 				break;
 				case COORD_ANG:
-					//recibi el angulo
+					pos_ang = p_rx[1];//recibi el angulo
 					cmdEsperado = NO_CMD;
 					tx[0] = OK_;
 					tx[3] = '\0';

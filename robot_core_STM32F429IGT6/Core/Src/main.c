@@ -95,6 +95,11 @@ uint16_t retroceso_cant = 0;
 uint16_t giroIzq_cant = 0;
 uint16_t giroDer_cant = 0;
 
+//coordenadas//
+uint8_t pos_x;
+uint8_t pos_y;
+uint8_t pos_ang;
+
 
 //sensores//
 uint8_t SI, SF, SD;
@@ -121,8 +126,8 @@ int16_t acum_encoderL = 0;
 int16_t acum_encoderR = 0;
 
 //velocidades//
-uint8_t velL = 5; //en ranuras cada 210 ms
-uint8_t velR = 5; //en ranuras cada 210 ms
+int8_t velL = 5; //en ranuras cada 210 ms
+int8_t velR = 5; //en ranuras cada 210 ms
 uint8_t velLFinal = 5; //en ranuras cada 210 ms
 uint8_t velRFinal = 5; //en ranuras cada 210 ms
 uint8_t Kp = 1;
@@ -221,6 +226,8 @@ int main(void)
 
   }
 
+  init_controlRxTx (&huart7);
+
   HAL_UART_Receive_IT(&huart7, rxUart, 4);
 
   if (!esp01Presente) {
@@ -247,7 +254,8 @@ int main(void)
 	  */
 
 	  if (flag_cmd != 0){
-		  check_rxUart();
+//		  check_rxUart();
+		  controlRxTxUART(rxUart);
 		  flag_cmd = 0;
 	  }
 
