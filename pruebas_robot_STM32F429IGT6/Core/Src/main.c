@@ -31,6 +31,8 @@
 #include "math.h"
 
 #include "mpu_9265_lfs.h"
+#include "comunicacionUART.h"
+#include "comandosUart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -72,6 +74,13 @@ uint8_t rxUart[4];
 uint8_t flag_cmd = 0;
 uint8_t txUart[4];
 uint8_t esp01Presente = 0;
+//variables de coordenadas//
+uint8_t pos_x = 0;
+uint8_t pos_y = 0;
+uint8_t pos_ang = 0;
+
+T_MODO modoFuncionamiento;
+uint8_t flag_encoders;
 
 /* USER CODE END PV */
 
@@ -144,7 +153,9 @@ int main(void)
 
   HAL_TIM_Base_Start_IT(&htim7); //desborda cada 1 s.
 
-  mpu9265_Init(&hi2c1);
+  init_controlRxTx (&huart7);
+  //mpu9265_Init(&hi2c1);
+  HAL_UART_Receive_IT(&huart7, rxUart, 4);
 
   /* USER CODE END 2 */
 
@@ -200,8 +211,8 @@ int main(void)
 	  */
 	  
 	  if (flag_cmd != 0){
-		  check_rxUart();
 		  flag_cmd = 0;
+		  controlRxTxUART(rxUart);
 	  }
 	  
     /* USER CODE END WHILE */

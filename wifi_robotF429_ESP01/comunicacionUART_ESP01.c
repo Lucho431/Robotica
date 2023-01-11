@@ -5,7 +5,17 @@
  *      Author: Luciano Salvatore
  */
 
-#include <ESP8266WiFi.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+#ifndef INC_COMUNICACIONUART_C_
+#define INC_COMUNICACIONUART_C_
+
+//#include <ESP8266WiFi.h>
+//#include "stdint.h"
 #include "comunicacionUART_ESP01.h"
 
 
@@ -22,8 +32,8 @@ extern uint8_t flag_encoders;
 //UART_HandleTypeDef* uart_handler;
 //variables UART
 uint8_t tx [4];
-uint8_t* p_rx;
-char* p_cmd;
+char* p_rx;
+uint8_t* p_cmd;
 //variables comandos
 T_CMD cmdEsperado = NO_CMD;
 T_CMD cmdActual = NO_CMD;
@@ -45,14 +55,14 @@ void continuaInstruccion(void);
 
 
 void init_controlRxTx (char topic[], char texto[], uint8_t cmd[]){
-	p_topic = topic[0];
-	p_txt = texto[0];
-	p_cmd = cmd[0];
+	p_topic = &topic[0];
+	p_txt = &texto[0];
+	p_cmd = &cmd[0];
 } //end init_controlRxTx()
 
-uint8_t controlRxTxUART (char rx[]){
+T_CTRL_COM controlRxTxUART (char rx[]){
 
-	flag_MQTT = 0;
+	ctrl_com = NO_ACC;	
 	
 	if (rx[3] != 0){
 		p_cmd[0] = CMD_ERROR;
@@ -69,8 +79,6 @@ uint8_t controlRxTxUART (char rx[]){
 		//iniciaInstruccion();
 	}
 
-	//HAL_UART_Receive_IT(uart_handler, rx, 4);
-	
 	return ctrl_com;
 
 } //end controlRxTxUART ()
@@ -80,7 +88,7 @@ void iniciaInstruccion (T_CMD cmdIni){
 	
 	switch (cmdIni){
 		case HOLA:
-			esp01Presente = 1;
+			//esp01Presente = 1;
 			cmdEsperado = NO_CMD;
 			p_cmd[0] = HOLA;
 			p_cmd[3] = '\0';
@@ -265,13 +273,17 @@ void continuaInstruccion(void){
 					p_cmd[1] = 0xC1;
 					p_cmd[2] = 0x0;
 					p_cmd[3] = '\0';
-					cmdSecuencia;
+					cmdSecuencia--;
 					ctrl_com = SEND_TXUART;
 				break;
 				case 0:
 					//Envia el MQTT
+					sprintf(p_topic, "Info/Nodo_ESP01/SET_HOME");
+					sprintf(p_txt, "X=%d, Y=%d, Ang=%d", stm_x, stm_y, stm_ang);
+					
 					cmdActual = NO_CMD;
 					cmdEsperado = NO_CMD;
+					ctrl_com = SEND_MQTT;
 				default:
 				break;
 			} //end switch cmdEsperado
@@ -282,3 +294,11 @@ void continuaInstruccion(void){
 
 
 } //end continuaInstruccion()
+
+
+#endif /* INC_COMUNICACIONUART_C_ */
+
+
+#ifdef __cplusplus
+}
+#endif

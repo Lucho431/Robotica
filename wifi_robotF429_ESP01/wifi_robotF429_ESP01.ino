@@ -3,6 +3,7 @@
 
 #include "comandosUart.h"
 #include "comunicacionUART_ESP01.h"
+//#include "comunicacionUART_ESP01.c"
 
 #define RXUART_BUFFER_SIZE 4
 
@@ -192,7 +193,7 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		cmdFrame[3] = '\0';
 		cmdEnProceso = 1;
 		Serial.write (cmdFrame, 4);
-		iniciaInstruccion (HOME);
+		iniciaInstruccion (SET_HOME);
 		return;
 	}
 

@@ -5,11 +5,16 @@
  *      Author: Luciano Salvatore
  */
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef INC_COMUNICACIONUART_H_
 #define INC_COMUNICACIONUART_H_
 
+#include "stdint.h"
 #include "comandosUart.h"
-#include <Arduino.h>
 
 typedef enum{
 	NO_ACC,
@@ -23,3 +28,8 @@ T_CTRL_COM controlRxTxUART (char []);
 void iniciaInstruccion (T_CMD);
 
 #endif /* INC_COMUNICACIONUART_H_ */
+
+
+#ifdef __cplusplus
+}
+#endif
