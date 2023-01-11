@@ -262,14 +262,14 @@ int main(void)
 	  SR_04();
 	  sensores();
 	  modo_funcionamiento();
-
+/*
 	  if (desbordeTIM7 > 21){
 		  flag_encoders = 1;
 		  desbordeTIM7 = 0;
 
 		  TRIG_SR04;
 	  }
-
+*/
 	  if (desbordeTIM7 != 0){
 		  periodo_Encoder += desbordeTIM7;
 		  periodo_SR04 += desbordeTIM7;
@@ -453,11 +453,11 @@ void movimientoLibre (void){
 	switch (status_movimiento) {
 		case QUIETO:
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
-
-			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
+//
+//			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
 
 			velL = 0;
 			velR = 0;
@@ -467,11 +467,11 @@ void movimientoLibre (void){
 		break;
 		case AVANZANDO:
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 1);
-
-			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+//			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 1);
+//
+//			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
 
 			velL = 5;
 			velR = 5;
@@ -503,13 +503,13 @@ void movimientoLibre (void){
 		break;
 		case ROTANDO_IZQ:
 
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 1);
+//			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 1);
+//
+//			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
+//			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
 
-			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
-
-			velL = 5;
+			velL = -5;
 			velR = 5;
 
 			switch (sensores_dist){
@@ -524,14 +524,14 @@ void movimientoLibre (void){
 
 		break;
 		case ROTANDO_DER:
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
-
-			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 1);
+//			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+//			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
+//
+//			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 1);
 
 			velL = 5;
-			velR = 5;
+			velR = -5;
 
 			switch (sensores_dist){
 				case 0b111:
@@ -545,23 +545,23 @@ void movimientoLibre (void){
 
 		break;
 		case RETROCEDIENDO:
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
+//
+//			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
+//			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 1);
 
-			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 1);
-
-			velL = 5;
-			velR = 5;
+			velL = -5;
+			velR = -5;
 
 			status_movimiento = AVANZANDO;
 			break;
 		case PIVOTE_IZQ_AVAN:
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 1);
-
-			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 1);
+//
+//			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
 
 			velL = 0;
 			velR = 5;
@@ -581,11 +581,11 @@ void movimientoLibre (void){
 
 		break;
 		case PIVOTE_DER_AVAN:
-			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
-			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
-
-			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
-			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 1);
+//			HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
+//
+//			HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
 
 			velL = 5;
 			velR = 0;

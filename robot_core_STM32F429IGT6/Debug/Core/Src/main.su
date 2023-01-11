@@ -8,7 +8,7 @@
 ../Core/Src/main.c:400:6:PWM_motores	4	static
 ../Core/Src/main.c:412:6:aceleracion	4	static
 ../Core/Src/main.c:417:6:velocidades	16	static
-../Core/Src/main.c:446:6:movimientoLibre	8	static
+../Core/Src/main.c:446:6:movimientoLibre	4	static
 ../Core/Src/main.c:613:6:movimientoRC	8	static
 ../Core/Src/main.c:834:6:encoders	4	static
 ../Core/Src/main.c:875:6:test_respuesta	8	static
