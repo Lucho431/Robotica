@@ -17,6 +17,14 @@ extern uint8_t flag_encoders;
 extern uint8_t pos_x;
 extern uint8_t pos_y;
 extern uint8_t pos_ang;
+extern int16_t posX_i16;
+extern int16_t posY_i16;
+extern int16_t direccion_i16;
+
+extern uint16_t avance_cant;
+extern uint16_t retroceso_cant;
+extern uint16_t giroIzq_cant;
+extern uint16_t giroDer_cant;
 
 ///////variables locales////////
 
@@ -98,7 +106,7 @@ void iniciaInstruccion (void){
 			cmdActual = HOME;
 			tx[0] = COORD_X;
 			tx[1] = 0x0;
-			tx[2] = pos_x;
+			tx[2] = posX_i16 & 0xFF;
 			tx[3] = '\0';
 			cmdEsperado = OK_;
 			cmdSecuencia = 2;
@@ -112,28 +120,28 @@ void iniciaInstruccion (void){
 			HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 		case AVANCE:
-//			avance_cant += (uint16_t) (rx[2] + (rx[1] << 8));
+			avance_cant += (uint16_t) (p_rx[2] + (p_rx[1] << 8));
 			cmdEsperado = NO_CMD;
 			tx[0] = OK_;
 			tx[3] = '\0';
 			HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 		case RETROCEDE:
-//			retroceso_cant += (uint16_t) (rx[2] + (rx[1] << 8));
+			retroceso_cant += (uint16_t) (p_rx[2] + (p_rx[1] << 8));
 			cmdEsperado = NO_CMD;
 			tx[0] = OK_;
 			tx[3] = '\0';
 			HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 		case GIRO_IZQ:
-//			giroIzq_cant += (uint16_t) (rx[2] + (rx[1] << 8));
+			giroIzq_cant += (uint16_t) (p_rx[2] + (p_rx[1] << 8));
 			cmdEsperado = NO_CMD;
 			tx[0] = OK_;
 			tx[3] = '\0';
 			HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 		case GIRO_DER:
-//			giroDer_cant += (uint16_t) (rx[2] + (rx[1] << 8));
+			giroDer_cant += (uint16_t) (p_rx[2] + (p_rx[1] << 8));
 			cmdEsperado = NO_CMD;
 			tx[0] = OK_;
 			tx[3] = '\0';
@@ -150,27 +158,13 @@ void iniciaInstruccion (void){
 			tx[3] = '\0';
 			HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
-		case COORD_ANG:
+		case DIST_GIRO:
 			cmdEsperado = NO_CMD;
-/*
-			mpu9265_Read_Magnet(&mpu9265);
-			magX = mpu9265.Magnet_X_RAW;
-			magY = mpu9265.Magnet_Y_RAW;
 
-			direccion_f32 = atan2f(magY, magX);
-			direccion_f32 *= (180.0/M_PI);
-//			direccion_i16 = direccion_f32/180;
-			direccion_i16 = direccion_f32;
-			direccion_i16 -= 138;
-
-			direccion_f32 *= (180.0/M_PI);
-			direccion_i16 = direccion_f32/180;
-
-			txUart[0] = COORD_ANG;
-			txUart[1] = (uint8_t)(direccion_i16 >> 8);
-			txUart[2] = (uint8_t)(direccion_i16 & 0xFF);
-			txUart[3] = '\0';
-			*/
+			tx[0] = COORD_ANG;
+			tx[1] = (uint8_t)(direccion_i16 >> 8);
+			tx[2] = (uint8_t)(direccion_i16 & 0xFF);
+			tx[3] = '\0';
 			HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 		default:
@@ -202,7 +196,7 @@ void continuaInstruccion(void){
 				case 2:
 					tx[0] = COORD_Y;
 					tx[1] = 0x0;
-					tx[2] = pos_y;
+					tx[2] = posY_i16 & 0xFF;
 					tx[3] = '\0';
 					cmdSecuencia--;
 					HAL_UART_Transmit_IT(uart_handler, tx, 4);

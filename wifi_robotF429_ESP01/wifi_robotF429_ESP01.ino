@@ -176,6 +176,7 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		cmdFrame[0] = DIST_GIRO;
 		cmdFrame[3] = '\0';
 		Serial.write (cmdFrame, 4);
+		iniciaInstruccion(DIST_GIRO);
 		return;
 	}
 	

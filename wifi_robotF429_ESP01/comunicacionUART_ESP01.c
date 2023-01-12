@@ -167,29 +167,10 @@ void iniciaInstruccion (T_CMD cmdIni){
 			p_cmd[3] = '\0';
 			ctrl_com = SEND_TXUART;
 		break;
-		case COORD_ANG:
-			cmdEsperado = NO_CMD;
-/*
-			mpu9265_Read_Magnet(&mpu9265);
-			magX = mpu9265.Magnet_X_RAW;
-			magY = mpu9265.Magnet_Y_RAW;
-
-			direccion_f32 = atan2f(magY, magX);
-			direccion_f32 *= (180.0/M_PI);
-//			direccion_i16 = direccion_f32/180;
-			direccion_i16 = direccion_f32;
-			direccion_i16 -= 138;
-
-			direccion_f32 *= (180.0/M_PI);
-			direccion_i16 = direccion_f32/180;
-
-			txUart[0] = COORD_ANG;
-			txUart[1] = (uint8_t)(direccion_i16 >> 8);
-			txUart[2] = (uint8_t)(direccion_i16 & 0xFF);
-			txUart[3] = '\0';
-			
+		case DIST_GIRO:
+			cmdActual = DIST_GIRO;
+			cmdEsperado = COORD_ANG;
 			ctrl_com = SEND_TXUART;
-			*/
 		break;
 		default:
 			p_cmd[0] = CMD_ERROR;
@@ -233,7 +214,7 @@ void continuaInstruccion(void){
 				break;
 				case COORD_ANG:
 					stm_ang = p_rx[2]; //almacena el angulo
-					sprintf(p_topic, "Info/Nodo_ESP01/VEL_AVANCE");
+					sprintf(p_topic, "Info/Nodo_ESP01/HOME");
 					sprintf(p_txt, "X=%d, Y=%d, Ang=%d", stm_x, stm_y, stm_ang);
 					//flag_MQTT = 1;
 					
@@ -288,6 +269,12 @@ void continuaInstruccion(void){
 				break;
 			} //end switch cmdEsperado
 		break;
+		case DIST_GIRO:
+			sprintf(p_topic, "Info/Nodo_ESP01/COORD_ANG");
+			sprintf(p_txt, "%d", (int16_t) ( (p_rx[1] << 8) |  p_rx[2]) );
+			cmdActual = NO_CMD;
+			cmdEsperado = NO_CMD;
+			ctrl_com = SEND_MQTT;
 		default:
 		break;
 	} //end switch cmdActual
