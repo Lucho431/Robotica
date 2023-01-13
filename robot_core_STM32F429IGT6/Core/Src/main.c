@@ -86,7 +86,7 @@ T_MOV status_movimiento = QUIETO;
 T_MOV last_movimiento = QUIETO;
 int16_t distL; //distancia relativa de la rueda izquierda en ranuras cada 210 ms.
 int16_t distR; //distancia relativa de la rueda derecha en ranuras cada 210 ms.
-int16_t distC; //distancia relativa del centro en ranuras cada 210 ms.
+int16_t distC = 0; //distancia relativa del centro en ranuras cada 210 ms.
 
 
 //mpu9265//
@@ -119,7 +119,7 @@ mpuData_t mpu9265;
 uint8_t desbordeTIM7 = 0; //desborda cada 10 ms.
 uint8_t periodo_Encoder = 0;
 uint8_t periodo_SR04 = 0;
-uint8_t periodo_pos = 0;
+uint8_t periodo_pos = 10; //offset para operar intercalado con el periodo encoder
 
 
 //SR-04//
@@ -279,7 +279,7 @@ int main(void)
 			  TRIG_SR04;
 			  periodo_SR04 = 0;
 		  }
-		  if (periodo_pos > 50){
+		  if (periodo_pos > 21){
 			  posicionamiento();
 			  periodo_pos = 0;
 		  }
@@ -433,7 +433,7 @@ void movimientoLibre (void){
 
 			velL = 0;
 			velR = 0;
-			periodo_Encoder = 0;
+			//periodo_Encoder = 0;
 
 			status_movimiento = AVANZANDO;
 		break;
@@ -600,7 +600,7 @@ void movimientoRC (void){
 			velL = 0;
 			velR = 0;
 
-			periodo_Encoder = 0;
+			//periodo_Encoder = 0;
 
 			if (avance_cant != 0){
 				acum_encoderL = 0;
@@ -837,26 +837,9 @@ void encoders (void){
 	encoderR = __HAL_TIM_GET_COUNTER(&htim2);
 	__HAL_TIM_SET_COUNTER(&htim2, 0);
 
-//	if (encoderL > velL){
-//		if (TIM4->CCR1 > 45)
-//			TIM4->CCR1--;
-//	}else if (encoderL < velL){
-//		if (TIM4->CCR1 < 85)
-//			TIM4->CCR1++;
-//	}
-
 	TIM4->CCR1 += velLFinal - encoderL;
-
 //	if (TIM4->CCR1 < 62) TIM4->CCR1 = 62;
 //	if (TIM4->CCR1 > 82) TIM4->CCR1 = 82;
-
-//	if (encoderR > velR){
-//		if (TIM4->CCR2 > 45)
-//			TIM4->CCR2--;
-//	}else if (encoderR < velR){
-//		if (TIM4->CCR2 < 85)
-//			TIM4->CCR2++;
-//	}
 
 	TIM4->CCR2 += velRFinal - encoderR;
 //	if (TIM4->CCR2 < 62) TIM4->CCR2 = 62;
@@ -876,7 +859,7 @@ void encoders (void){
 	else
 		distR = -encoderR;
 
-	distC = (distL + distR) >> 1;
+	distC += (distL + distR) >> 1;
 
 	flag_encoders = 0;
 
@@ -886,18 +869,17 @@ void posicionamiento (void){
 
 	//saco el angulo
 	mpu9265_Read_Magnet(&mpu9265);
-	magX = (float) (mpu9265.Magnet_X_RAW + 388.0); //media empirica
-	magY = (float) (mpu9265.Magnet_Y_RAW - 234.0); //media empirica
+	magX = (float) (mpu9265.Magnet_X_RAW + 359.0); //media empirica
+	magY = (float) (mpu9265.Magnet_Y_RAW - 159.0); //media empirica
 	direccion_f32 = atan2f(magY, magX); //radianes en float
-	direccion_f32 *= (180.0/M_PI); //grados en float
-
-	direccion_i16 = direccion_f32; //grados en int16
-
 	posX_f32 += (float) (distC * cosf(direccion_f32)); //posicion X en float
 	posY_f32 += (float) (distC * sinf(direccion_f32)); //posicion Y en float
-
+	distC = 0;
+	direccion_f32 *= (180.0/M_PI); //grados en float
+	direccion_i16 = direccion_f32; //grados en int16
 	posX_i16 = posX_f32; //posicion X en int16
 	posY_i16 = posY_f32; //posicion Y en int16
+
 } //fin posicionamiento ()
 
 void test_respuesta (void){

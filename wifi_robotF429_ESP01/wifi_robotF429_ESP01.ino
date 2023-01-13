@@ -180,12 +180,12 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		return;
 	}
 	
-	if ( !strcmp(pl, "home") ){//si recibe por MQTT el comando "home"
-		cmdFrame[0] = HOME;
+	if ( !strcmp(pl, "pos") ){//si recibe por MQTT el comando "pos"
+		cmdFrame[0] = POSICION;
 		cmdFrame[3] = '\0';
 		cmdEnProceso = 1;
 		Serial.write (cmdFrame, 4);
-		iniciaInstruccion (HOME);
+		iniciaInstruccion (POSICION);
 		return;
 	}
 	

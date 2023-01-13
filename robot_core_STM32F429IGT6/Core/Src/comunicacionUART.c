@@ -102,6 +102,16 @@ void iniciaInstruccion (void){
 					HAL_UART_Transmit_IT(uart_handler, tx, 4);
 			} //end switch p_rx[1]
 		break;
+		case POSICION:
+			cmdActual = POSICION;
+			tx[0] = COORD_X;
+			tx[1] = posX_i16 >> 8;
+			tx[2] = posX_i16 & 0xFF;
+			tx[3] = '\0';
+			cmdEsperado = OK_;
+			cmdSecuencia = 2;
+			HAL_UART_Transmit_IT(uart_handler, tx, 4);
+		break;
 		case HOME:
 			cmdActual = HOME;
 			tx[0] = COORD_X;
@@ -191,6 +201,31 @@ void continuaInstruccion(void){
 	}
 
 	switch (cmdActual) {
+		case POSICION:
+			switch (cmdSecuencia){
+				case 2:
+					tx[0] = COORD_Y;
+					tx[1] = posY_i16 >> 8;
+					tx[2] = posY_i16 & 0xFF;
+					tx[3] = '\0';
+					cmdSecuencia--;
+					HAL_UART_Transmit_IT(uart_handler, tx, 4);
+				break;
+				case 1:
+					tx[0] = COORD_ANG;
+					tx[1] = direccion_i16 >>8;
+					tx[2] = direccion_i16 & 0xFF;
+					tx[3] = '\0';
+					cmdSecuencia--;
+					HAL_UART_Transmit_IT(uart_handler, tx, 4);
+				break;
+				case 0:
+					cmdActual = NO_CMD;
+					cmdEsperado = NO_CMD;
+				break;
+			} //end switch cmdSecuencia
+
+		break;
 		case HOME:
 			switch (cmdSecuencia){
 				case 2:

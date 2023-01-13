@@ -154,7 +154,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim7); //desborda cada 1 s.
 
   init_controlRxTx (&huart7);
-  //mpu9265_Init(&hi2c1);
+  mpu9265_Init(&hi2c1);
   HAL_UART_Receive_IT(&huart7, rxUart, 4);
 
   /* USER CODE END 2 */
@@ -167,15 +167,15 @@ int main(void)
 //	  TIM4->CCR1 = set_pwm_L;
 //	  TIM4->CCR2 = set_pwm_R;
 	  
-	  /*
 	  
+
 	  if (desbordes != 0){
 
 		  deltaT = __HAL_TIM_GET_COUNTER(&htim7);
 
 		  mpu9265_Read_Magnet(&mpu9265);
-		  magX = (float) (mpu9265.Magnet_X_RAW + 388.0); //media empirica
-		  magY = (float) (mpu9265.Magnet_Y_RAW - 234.0); //media empirica
+		  magX = (float) (mpu9265.Magnet_X_RAW /*+ 388.0*/); //media empirica
+		  magY = (float) (mpu9265.Magnet_Y_RAW /*- 234.0*/); //media empirica
 
 		  if (magX > MAX_magX) MAX_magX = magX;
 		  if (magX < MIN_magX) MIN_magX = magX;
@@ -208,12 +208,14 @@ int main(void)
 		  desbordes = 0;
 	  } //fin  if (desbordes != 0)
 	  
-	  */
 	  
+
+	  /*
 	  if (flag_cmd != 0){
 		  flag_cmd = 0;
 		  controlRxTxUART(rxUart);
 	  }
+	  */
 	  
     /* USER CODE END WHILE */
 

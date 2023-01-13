@@ -33,6 +33,7 @@ typedef enum{
 	COORD_X,		//coordenada X (en pulsos del encoder) (consulta o parte de una trama)
 	COORD_Y,		//coordenada Y (un pulsos del encoder) (consulta o parte de una trama)
 	COORD_ANG,		//angulo del robot (Norte = 0 por omisión) (consulta o parte de una trama)
+	POSICION,	//lectura de la coordenada actual
 	DESTINO,		//comndo de siguiente coordenada de destino (instruccion)
 	HOME,			//lectura de la coordenada de HOME (consulta)
 	GO_HOME,		//dirigirse a la coordenada de HOME (instruccion)

@@ -42,9 +42,9 @@ uint8_t cmdSecuencia = 0; //contador decremental de tramas restantes de una inst
 char* p_topic;
 char* p_txt;
 //variables coordenadas
-uint8_t stm_x;
-uint8_t stm_y;
-uint8_t stm_ang;
+int16_t stm_x;
+int16_t stm_y;
+int16_t stm_ang;
 //variables de controlRxTx
 T_CTRL_COM ctrl_com = NO_ACC;
 
@@ -117,8 +117,8 @@ void iniciaInstruccion (T_CMD cmdIni){
 					ctrl_com = SEND_TXUART;
 			} //end switch p_rx[1]
 		break;
-		case HOME:
-			cmdActual = HOME;
+		case POSICION:
+			cmdActual = POSICION;
 			cmdEsperado = COORD_X;
 			ctrl_com = SEND_TXUART;
 		break;
@@ -196,25 +196,25 @@ void continuaInstruccion(void){
 	}
 
 	switch (cmdActual) {
-		case HOME:
+		case POSICION:
 			switch (cmdEsperado){
 				case COORD_X:
-					stm_x = p_rx[2]; //almacena X
+					stm_x = (int16_t)  ((p_rx[1] << 8) |  p_rx[2]) ; //almacena X
 					p_cmd[0] = OK_;
 					p_cmd[3] = '\0';
 					cmdEsperado = COORD_Y;
 					ctrl_com = SEND_TXUART;
 				break;
 				case COORD_Y:
-					stm_y = p_rx[2]; //almacena Y
+					stm_y = (int16_t)  ((p_rx[1] << 8) |  p_rx[2]); //almacena Y
 					p_cmd[0] = OK_;
 					p_cmd[3] = '\0';
 					cmdEsperado = COORD_ANG;
 					ctrl_com = SEND_TXUART;
 				break;
 				case COORD_ANG:
-					stm_ang = p_rx[2]; //almacena el angulo
-					sprintf(p_topic, "Info/Nodo_ESP01/HOME");
+					stm_ang = (int16_t)  ((p_rx[1] << 8) |  p_rx[2]); //almacena el angulo
+					sprintf(p_topic, "Info/Nodo_ESP01/POSICION");
 					sprintf(p_txt, "X=%d, Y=%d, Ang=%d", stm_x, stm_y, stm_ang);
 					//flag_MQTT = 1;
 					
