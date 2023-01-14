@@ -91,7 +91,9 @@ int16_t distC = 0; //distancia relativa del centro en ranuras cada 210 ms.
 
 //mpu9265//
 float magX, magY;
+float gyroZ, modGyroZ;
 float direccion_f32;
+float direccion_rad;
 int16_t direccion_i16;
 
 //desplazamientos manuales//
@@ -868,14 +870,26 @@ void encoders (void){
 void posicionamiento (void){
 
 	//saco el angulo
+	/*
 	mpu9265_Read_Magnet(&mpu9265);
 	magX = (float) (mpu9265.Magnet_X_RAW + 359.0); //media empirica
 	magY = (float) (mpu9265.Magnet_Y_RAW - 159.0); //media empirica
 	direccion_f32 = atan2f(magY, magX); //radianes en float
-	posX_f32 += (float) (distC * cosf(direccion_f32)); //posicion X en float
-	posY_f32 += (float) (distC * sinf(direccion_f32)); //posicion Y en float
+	*/
+
+	mpu9265_Read_Gyro(&mpu9265);
+	gyroZ = (float) (mpu9265.Gyro_Z_RAW / 131.0);
+	modGyroZ = abs(gyroZ * 0.21);
+
+	if (modGyroZ > 0.5)
+		direccion_f32 += gyroZ * 0.21;
+
+	direccion_rad = (direccion_f32 * M_PI / 180.0);
+
+	posX_f32 += (float) (distC * cosf(direccion_rad)); //posicion X en float
+	posY_f32 += (float) (distC * sinf(direccion_rad)); //posicion Y en float
 	distC = 0;
-	direccion_f32 *= (180.0/M_PI); //grados en float
+//	direccion_f32 *= (180.0/M_PI); //grados en float
 	direccion_i16 = direccion_f32; //grados en int16
 	posX_i16 = posX_f32; //posicion X en int16
 	posY_i16 = posY_f32; //posicion Y en int16
