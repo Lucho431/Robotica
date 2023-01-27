@@ -55,8 +55,11 @@ typedef enum{
 #define DIAMETRO_RUEDAS 	65  //en mm
 #define RANURAS_ENCODER		20  //vuelta completa
 #define AVANCE_X_PULSO		10  //en mm
+#define AVANCE_X_PULSO_F	10.21 //float en mm
 #define DIAMETRO_ACRILICO	130 //en mm
 #define ANCHO_TOTAL			156 //156,6 mm
+#define DISTANCIA_RUEDAS	125.0 //float en mm
+#define RADIANES_X_PULSO	0.081681408993334 //float en radianes
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -869,30 +872,48 @@ void encoders (void){
 
 void posicionamiento (void){
 
-	//saco el angulo
+	//saco el angulo...
+
 	/*
+	//por magnetometro
 	mpu9265_Read_Magnet(&mpu9265);
 	magX = (float) (mpu9265.Magnet_X_RAW + 359.0); //media empirica
 	magY = (float) (mpu9265.Magnet_Y_RAW - 159.0); //media empirica
 	direccion_f32 = atan2f(magY, magX); //radianes en float
-	*/
-
-	mpu9265_Read_Gyro(&mpu9265);
-	gyroZ = (float) (mpu9265.Gyro_Z_RAW / 131.0);
-	modGyroZ = abs(gyroZ * 0.21);
-
-	if (modGyroZ > 0.5)
-		direccion_f32 += gyroZ * 0.21;
-
-	direccion_rad = (direccion_f32 * M_PI / 180.0);
-
-	posX_f32 += (float) (distC * cosf(direccion_rad)); //posicion X en float
-	posY_f32 += (float) (distC * sinf(direccion_rad)); //posicion Y en float
+	posX_f32 += (float) (distC * cosf(direccion_f32)); //posicion X en float
+	posY_f32 += (float) (distC * sinf(direccion_f32)); //posicion Y en float
 	distC = 0;
-//	direccion_f32 *= (180.0/M_PI); //grados en float
+	direccion_f32 *= (180.0/M_PI); //grados en float
 	direccion_i16 = direccion_f32; //grados en int16
 	posX_i16 = posX_f32; //posicion X en int16
 	posY_i16 = posY_f32; //posicion Y en int16
+	*/
+	/*
+	//por giroscopio
+	mpu9265_Read_Gyro(&mpu9265);
+	gyroZ = (float) (mpu9265.Gyro_Z_RAW / 131.0);
+	modGyroZ = abs(gyroZ * 0.21);
+	if (modGyroZ > 0.5)
+		direccion_f32 += gyroZ * 0.21; //grados en float
+	direccion_rad = (direccion_f32 * M_PI / 180.0); //radianes en float
+	posX_f32 += (float) (distC * cosf(direccion_rad)); //posicion X en float
+	posY_f32 += (float) (distC * sinf(direccion_rad)); //posicion Y en float
+	distC = 0;
+	direccion_i16 = direccion_f32; //grados en int16
+	posX_i16 = posX_f32; //posicion X en int16
+	posY_i16 = posY_f32; //posicion Y en int16
+	*/
+
+	//por odometria
+	direccion_f32 += (float) ( (distR - distL) * RADIANES_X_PULSO); //radianes en float
+	posX_f32 += (float) (distC * cosf(direccion_rad)); //posicion X en float
+	posY_f32 += (float) (distC * sinf(direccion_rad)); //posicion Y en float
+	distC = 0;
+	direccion_f32 *= (180.0/M_PI); //grados en float
+	direccion_i16 = direccion_f32; //grados en int16
+	posX_i16 = posX_f32; //posicion X en int16
+	posY_i16 = posY_f32; //posicion Y en int16
+
 
 } //fin posicionamiento ()
 
