@@ -1,4 +1,4 @@
-../Core/Src/comunicacionUART.c:44:6:init_controlRxTx	16	static
-../Core/Src/comunicacionUART.c:49:6:controlRxTxUART	16	static
-../Core/Src/comunicacionUART.c:72:6:iniciaInstruccion	8	static
-../Core/Src/comunicacionUART.c:191:6:continuaInstruccion	8	static
+comunicacionUART.c:45:6:init_controlRxTx	16	static
+comunicacionUART.c:50:6:controlRxTxUART	16	static
+comunicacionUART.c:73:6:iniciaInstruccion	8	static
+comunicacionUART.c:192:6:continuaInstruccion	8	static

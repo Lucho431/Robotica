@@ -71,6 +71,10 @@ typedef enum{
 
 /* USER CODE BEGIN PV */
 
+//variables de prueba//
+volatile uint8_t estatusPrueba = 0;
+volatile uint16_t ticks_prueba = 0xFFFF;
+
 //comunicacion//
 uint8_t rxUart[4];
 uint8_t flag_cmd = 0;
@@ -94,7 +98,19 @@ int16_t distC = 0; //distancia relativa del centro en ranuras cada 210 ms.
 
 //mpu9265//
 float magX, magY;
+
+float magX_min = 1000, magX_max = -1000;
+float magY_min = 1000, magY_max = -1000;
+float magX_media = 1, magY_media = 1;
+float direccionMag_rad_f32;
+float direccionMag_grad_f32;
+int16_t direccionMag_grad_i16;
+
 float gyroZ, modGyroZ;
+float direccionGiro_rad_f32;
+float direccionGiro_grad_f32;
+int16_t direccionGiro_grad_i16;
+
 float direccion_f32;
 float direccion_rad;
 int16_t direccion_i16;
@@ -252,6 +268,9 @@ int main(void)
 	  modoFuncionamiento = MANUAL;
   }
 
+  //para pruebas (comentar cuando no se requiera):
+  modoFuncionamiento = PRUEBA;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -288,7 +307,11 @@ int main(void)
 			  posicionamiento();
 			  periodo_pos = 0;
 		  }
-	  }
+
+		  //para pruebas (comentar cuando no se requiera):
+		  if (ticks_prueba != 0) ticks_prueba--;
+
+	  } //fin if desbordeTIM7
 
 
     /* USER CODE END WHILE */
@@ -804,6 +827,49 @@ void movimientoRC (void){
 
 } //fin movimientoRC()
 
+void orientando (void){
+
+	switch (estatusPrueba) {
+		case 0:
+			velL = -4;
+			velR = +4;
+			giroIzq_cant = 170;
+			estatusPrueba = 1;
+		break;
+		case 1:
+			if (giroIzq_cant < ((acum_encoderL + acum_encoderR) >> 1) ){
+				velL = 0;
+				velR = 0;
+				estatusPrueba = 2;
+				ticks_prueba = 200;
+			}
+		break;
+		case 2:
+			if (!ticks_prueba){
+				estatusPrueba = 3;
+			}
+		break;
+		case 3:
+			if (direccionMag_grad_i16 > 17){
+				velL = +4;
+				velR = -4;
+			}else if (direccionMag_grad_i16 < -17){
+				velL = -4;
+				velR = +4;
+			}else{
+				velL = 0;
+				velR = 0;
+			}
+
+		break;
+
+		default:
+		break;
+	}
+
+} //fin orientando ()
+
+
 void velocidades (int8_t vl, int8_t vr){
 
 	if (vl < 0){
@@ -874,42 +940,70 @@ void posicionamiento (void){
 
 	//saco el angulo...
 
-	/*
+
 	//por magnetometro
 	mpu9265_Read_Magnet(&mpu9265);
-	magX = (float) (mpu9265.Magnet_X_RAW + 359.0); //media empirica
-	magY = (float) (mpu9265.Magnet_Y_RAW - 159.0); //media empirica
-	direccion_f32 = atan2f(magY, magX); //radianes en float
-	posX_f32 += (float) (distC * cosf(direccion_f32)); //posicion X en float
-	posY_f32 += (float) (distC * sinf(direccion_f32)); //posicion Y en float
+	magX = (float) (mpu9265.Magnet_X_RAW); //media empirica +359.0
+	magY = (float) (mpu9265.Magnet_Y_RAW); //media empirica -159.0
+
+	if (magX < magX_min) magX_min = magX;
+	if (magX > magX_max) magX_max = magX;
+	if (magY < magY_min) magY_min = magY;
+	if (magY > magY_max) magY_max = magY;
+	magX_media = (magX_min + magX_max) / 2.0;
+	magY_media = (magY_min + magY_max) / 2.0;
+
+	magX -= magX_media;
+	magY -= magY_media;
+	magX /= magX_media;
+	magY /= magX_media;
+
+	direccionMag_rad_f32 = atan2f(magY, magX); //radianes en float
+	posX_f32 += (float) (distC * 0.1 * cosf(direccionMag_rad_f32)); //posicion X en float
+	posY_f32 += (float) (distC * 0.1 * sinf(direccionMag_rad_f32)); //posicion Y en float
 	distC = 0;
-	direccion_f32 *= (180.0/M_PI); //grados en float
-	direccion_i16 = direccion_f32; //grados en int16
+	direccionMag_grad_f32 = direccionMag_rad_f32 * 180.0 / M_PI; //grados en float
+	direccionMag_grad_i16 = direccionMag_grad_f32; //grados en int16
 	posX_i16 = posX_f32; //posicion X en int16
 	posY_i16 = posY_f32; //posicion Y en int16
-	*/
-	/*
+
+
 	//por giroscopio
 	mpu9265_Read_Gyro(&mpu9265);
 	gyroZ = (float) (mpu9265.Gyro_Z_RAW / 131.0);
 	modGyroZ = abs(gyroZ * 0.21);
-	if (modGyroZ > 0.5)
-		direccion_f32 += gyroZ * 0.21; //grados en float
-	direccion_rad = (direccion_f32 * M_PI / 180.0); //radianes en float
-	posX_f32 += (float) (distC * cosf(direccion_rad)); //posicion X en float
-	posY_f32 += (float) (distC * sinf(direccion_rad)); //posicion Y en float
+	if (modGyroZ > 0.5){
+		direccionGiro_grad_f32 += gyroZ * 0.21; //grados en float
+	}
+	if (direccionGiro_grad_f32 < 0){
+		direccionGiro_grad_f32 += 360.0;
+	}
+	if (direccionGiro_grad_f32 > 360.0){
+		direccionGiro_grad_f32 -= 360.0;
+	}
+	direccionGiro_rad_f32 = (direccionGiro_grad_f32 * M_PI / 180.0); //radianes en float
+	posX_f32 += (float) (distC * cosf(direccionGiro_rad_f32)); //posicion X en float
+	posY_f32 += (float) (distC * sinf(direccionGiro_rad_f32)); //posicion Y en float
 	distC = 0;
-	direccion_i16 = direccion_f32; //grados en int16
+	direccionGiro_grad_i16 = direccionGiro_grad_f32; //grados en int16
 	posX_i16 = posX_f32; //posicion X en int16
 	posY_i16 = posY_f32; //posicion Y en int16
-	*/
+
 
 	//por odometria
-	direccion_f32 += (float) ( (distR - distL) * RADIANES_X_PULSO); //radianes en float
+	direccion_rad += (float) ( (distR - distL) * RADIANES_X_PULSO); //radianes en float
+
+	if (direccion_rad < 0){
+		direccion_rad += M_TWOPI;
+	}
+	if (direccion_rad > M_TWOPI){
+		direccion_rad -= M_TWOPI;
+	}
+
 	posX_f32 += (float) (distC * cosf(direccion_rad)); //posicion X en float
 	posY_f32 += (float) (distC * sinf(direccion_rad)); //posicion Y en float
 	distC = 0;
-	direccion_f32 *= (180.0/M_PI); //grados en float
+	direccion_f32 = direccion_rad * (180.0/M_PI); //grados en float
 	direccion_i16 = direccion_f32; //grados en int16
 	posX_i16 = posX_f32; //posicion X en int16
 	posY_i16 = posY_f32; //posicion Y en int16
@@ -1052,6 +1146,8 @@ void modo_funcionamiento (void){
 		case MANUAL:
 			movimientoRC();
 		break;
+		case PRUEBA:
+			orientando();
 		default:
 		break;
 	} //end switch modoFuncionamiento

@@ -19,6 +19,7 @@ extern uint8_t pos_y;
 extern uint8_t pos_ang;
 extern int16_t posX_i16;
 extern int16_t posY_i16;
+extern int16_t direccionMag_grad_i16;
 extern int16_t direccion_i16;
 
 extern uint16_t avance_cant;
@@ -213,8 +214,8 @@ void continuaInstruccion(void){
 				break;
 				case 1:
 					tx[0] = COORD_ANG;
-					tx[1] = direccion_i16 >>8;
-					tx[2] = direccion_i16 & 0xFF;
+					tx[1] = direccionMag_grad_i16 >>8;
+					tx[2] = direccionMag_grad_i16 & 0xFF;
 					tx[3] = '\0';
 					cmdSecuencia--;
 					HAL_UART_Transmit_IT(uart_handler, tx, 4);

@@ -58,6 +58,7 @@ typedef enum{
 typedef enum{
 	AUTOMATICO,
 	MANUAL,
+	PRUEBA,
 }T_MODO;
 
 
