@@ -138,9 +138,9 @@ mpuData_t mpu9265;
 
 //ticks//
 uint8_t desbordeTIM7 = 0; //desborda cada 10 ms.
-uint8_t periodo_Encoder = 0;
+uint8_t periodo_Encoder = 7;
 uint8_t periodo_SR04 = 0;
-uint8_t periodo_pos = 10; //offset para operar intercalado con el periodo encoder
+uint8_t periodo_pos = 14; //offset para operar intercalado con el periodo encoder
 
 
 //SR-04//
@@ -154,8 +154,15 @@ uint16_t distanciaSR04 = 0; //distancia en cm.
 uint8_t flag_encoders = 0;
 int16_t encoderL;
 int16_t encoderR;
+int16_t encoderL_delta;
+int16_t encoderR_delta;
 int16_t acum_encoderL = 0;
 int16_t acum_encoderR = 0;
+int16_t encoderL_memPositivo = 0;
+int16_t encoderR_memPositivo = 0;
+int16_t encoderL_memNegativo = 0;
+int16_t encoderR_memNegativo = 0;
+
 
 //velocidades//
 int8_t velL = 5; //en ranuras cada 210 ms
@@ -482,19 +489,33 @@ void movimientoLibre (void){
 					//status_movimiento = PIVOTE_IZQ_AVAN;
 					status_movimiento = ROTANDO_IZQ;
 
+					encoderL_memPositivo += __HAL_TIM_GET_COUNTER(&htim3);
+					__HAL_TIM_SET_COUNTER(&htim3, 0);
+
 				break;
 				case 0b101:
 				case 0b100:
 				case 0b000:
 					status_movimiento = ROTANDO_IZQ;
+
+					encoderL_memPositivo += __HAL_TIM_GET_COUNTER(&htim3);
+					__HAL_TIM_SET_COUNTER(&htim3, 0);
 				break;
 				case 0b011:
 					//agregado para prueba
 					//status_movimiento = PIVOTE_DER_AVAN;
 					status_movimiento = ROTANDO_DER;
+
+					encoderR_memPositivo += __HAL_TIM_GET_COUNTER(&htim2);
+					__HAL_TIM_SET_COUNTER(&htim2, 0);
+
 				break;
 				case 0b001:
 					status_movimiento = ROTANDO_DER;
+
+					encoderR_memPositivo += __HAL_TIM_GET_COUNTER(&htim2);
+					__HAL_TIM_SET_COUNTER(&htim2, 0);
+
 				break;
 				default:
 				break;
@@ -515,9 +536,19 @@ void movimientoLibre (void){
 			switch (sensores_dist){
 				case 0b111:
 					status_movimiento = AVANZANDO;
+
+					encoderL_memNegativo += __HAL_TIM_GET_COUNTER(&htim3);
+					__HAL_TIM_SET_COUNTER(&htim3, 0);
+
 					break;
 				case 0b011:
 					status_movimiento = ROTANDO_DER;
+
+					encoderL_memNegativo += __HAL_TIM_GET_COUNTER(&htim3);
+					__HAL_TIM_SET_COUNTER(&htim3, 0);
+					encoderR_memPositivo += __HAL_TIM_GET_COUNTER(&htim2);
+					__HAL_TIM_SET_COUNTER(&htim2, 0);
+
 				default:
 					break;
 			} //end switch sensores_dist
@@ -536,9 +567,19 @@ void movimientoLibre (void){
 			switch (sensores_dist){
 				case 0b111:
 					status_movimiento = AVANZANDO;
+
+					encoderR_memNegativo += __HAL_TIM_GET_COUNTER(&htim2);
+					__HAL_TIM_SET_COUNTER(&htim2, 0);
+
 					break;
 				case 0b110:
 					status_movimiento = ROTANDO_IZQ;
+
+					encoderL_memPositivo += __HAL_TIM_GET_COUNTER(&htim3);
+					__HAL_TIM_SET_COUNTER(&htim3, 0);
+					encoderR_memNegativo += __HAL_TIM_GET_COUNTER(&htim2);
+					__HAL_TIM_SET_COUNTER(&htim2, 0);
+
 				default:
 					break;
 			} //end switch sensores_dist
@@ -840,6 +881,7 @@ void orientando (void){
 			if (giroIzq_cant < ((acum_encoderL + acum_encoderR) >> 1) ){
 				velL = 0;
 				velR = 0;
+				giroIzq_cant = 0;
 				estatusPrueba = 2;
 				ticks_prueba = 200;
 			}
@@ -908,30 +950,40 @@ void encoders (void){
 	encoderR = __HAL_TIM_GET_COUNTER(&htim2);
 	__HAL_TIM_SET_COUNTER(&htim2, 0);
 
-	TIM4->CCR1 += velLFinal - encoderL;
+	encoderL_delta = encoderL + encoderL_memPositivo + encoderL_memNegativo;
+	encoderR_delta = encoderR + encoderR_memPositivo + encoderR_memNegativo;
+
+	TIM4->CCR1 += velLFinal - encoderL_delta;
 //	if (TIM4->CCR1 < 62) TIM4->CCR1 = 62;
 //	if (TIM4->CCR1 > 82) TIM4->CCR1 = 82;
 
-	TIM4->CCR2 += velRFinal - encoderR;
+	TIM4->CCR2 += velRFinal - encoderR_delta;
 //	if (TIM4->CCR2 < 62) TIM4->CCR2 = 62;
 //	if (TIM4->CCR2 > 82) TIM4->CCR2 = 82;
 
-	acum_encoderL += encoderL;
-	acum_encoderR += encoderR;
-
 	//avance del centro de masa
 	if (velL > 0)
-		distL = encoderL;
+		distL = encoderL + encoderL_memPositivo - encoderL_memNegativo;
 	else
-		distL = -encoderL;
+		distL = -encoderL + encoderL_memPositivo - encoderL_memNegativo;
 
 	if (velR > 0)
-		distR = encoderR;
+		distR = encoderR + encoderR_memPositivo - encoderR_memNegativo;
 	else
-		distR = -encoderR;
+		distR = -encoderR + encoderR_memPositivo - encoderR_memNegativo;
 
 	distC += (distL + distR) >> 1;
 
+	//acumula encoders
+//	acum_encoderL += encoderL + encoderL_memPositivo - encoderL_memNegativo;
+//	acum_encoderR += encoderR + encoderR_memPositivo - encoderR_memNegativo;
+	acum_encoderL += encoderL_delta;
+	acum_encoderR += encoderR_delta;
+
+	encoderL_memNegativo = 0;
+	encoderL_memPositivo = 0;
+	encoderR_memNegativo = 0;
+	encoderR_memPositivo = 0;
 	flag_encoders = 0;
 
 } //fin encoders()
