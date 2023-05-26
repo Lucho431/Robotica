@@ -58,7 +58,8 @@ typedef enum{
 typedef enum{
 	AUTOMATICO,
 	MANUAL,
-	PRUEBA,
+	CALIBRA_MAG,
+	PUNTO_A_PUNTO,
 }T_MODO;
 
 

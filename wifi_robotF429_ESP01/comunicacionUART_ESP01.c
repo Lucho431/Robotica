@@ -64,9 +64,9 @@ T_CTRL_COM controlRxTxUART (char rx[]){
 
 	ctrl_com = NO_ACC;	
 	
-	if (rx[3] != 0){
+	if (rx[7] != 0){
 		p_cmd[0] = CMD_ERROR;
-		p_cmd[3] = '\0';
+		p_cmd[7] = '\0';
 		//Serial.write (tx, 4);
 		return SEND_TXUART;
 	}
@@ -75,8 +75,6 @@ T_CTRL_COM controlRxTxUART (char rx[]){
 
 	if (cmdEsperado != NO_CMD){
 		continuaInstruccion();
-	}else{
-		//iniciaInstruccion();
 	}
 
 	return ctrl_com;
@@ -91,36 +89,25 @@ void iniciaInstruccion (T_CMD cmdIni){
 			//esp01Presente = 1;
 			cmdEsperado = NO_CMD;
 			p_cmd[0] = HOLA;
-			p_cmd[3] = '\0';
-			ctrl_com = SEND_TXUART;
+			p_cmd[7] = '\0';
 		break;
 
 		case MODO:
 			switch (p_rx[1]) {
 				case AUTOMATICO:
-					//modoFuncionamiento = AUTOMATICO;
-					//flag_encoders = 0;
-					p_cmd[0] = OK_;
-					p_cmd[3] = '\0';
-					ctrl_com = SEND_TXUART;
-					break;
 				case MANUAL:
-//					status_movimiento = QUIETO;
-					//modoFuncionamiento = MANUAL;
-					p_cmd[0] = OK_;
-					p_cmd[3] = '\0';
-					ctrl_com = SEND_TXUART;
-					break;
+				break;
 				default:
 					p_cmd[0] = CMD_ERROR;
-					p_cmd[3] = '\0';
-					ctrl_com = SEND_TXUART;
+					p_cmd[7] = '\0';
 			} //end switch p_rx[1]
 		break;
 		case POSICION:
 			cmdActual = POSICION;
-			cmdEsperado = COORD_X;
-			ctrl_com = SEND_TXUART;
+			cmdEsperado = POSICION;
+		break;
+		case DESTINO:
+			cmdEsperado = NO_CMD;
 		break;
 		case SET_HOME:
 			cmdActual = SET_HOME;
@@ -131,30 +118,18 @@ void iniciaInstruccion (T_CMD cmdIni){
 		case AVANCE:
 //			avance_cant += (uint16_t) (rx[2] + (rx[1] << 8));
 			cmdEsperado = NO_CMD;
-			p_cmd[0] = OK_;
-			p_cmd[3] = '\0';
-			ctrl_com = SEND_TXUART;
 		break;
 		case RETROCEDE:
 //			retroceso_cant += (uint16_t) (rx[2] + (rx[1] << 8));
 			cmdEsperado = NO_CMD;
-			p_cmd[0] = OK_;
-			p_cmd[3] = '\0';
-			ctrl_com = SEND_TXUART;
 		break;
 		case GIRO_IZQ:
 //			giroIzq_cant += (uint16_t) (rx[2] + (rx[1] << 8));
 			cmdEsperado = NO_CMD;
-			p_cmd[0] = OK_;
-			p_cmd[3] = '\0';
-			ctrl_com = SEND_TXUART;
 		break;
 		case GIRO_DER:
 //			giroDer_cant += (uint16_t) (rx[2] + (rx[1] << 8));
 			cmdEsperado = NO_CMD;
-			p_cmd[0] = OK_;
-			p_cmd[3] = '\0';
-		//	HAL_UART_Transmit_IT(uart_handler, tx, 4);
 		break;
 		case VEL_AVANCE:
 			cmdEsperado = NO_CMD;
@@ -164,18 +139,15 @@ void iniciaInstruccion (T_CMD cmdIni){
 			p_cmd[0] = VEL_AVANCE;
 //			tx[1] = (uint8_t)(mpu9265.Accel_X_RAW >> 8);
 //			tx[2] = (uint8_t)(mpu9265.Accel_X_RAW & 0xFF);
-			p_cmd[3] = '\0';
-			ctrl_com = SEND_TXUART;
+			p_cmd[7] = '\0';
 		break;
 		case DIST_GIRO:
 			cmdActual = DIST_GIRO;
 			cmdEsperado = COORD_ANG;
-			ctrl_com = SEND_TXUART;
 		break;
 		default:
 			p_cmd[0] = CMD_ERROR;
-			p_cmd[3] = '\0';
-			ctrl_com = SEND_TXUART;
+			p_cmd[7] = '\0';
 		break;
 	} //end switch (cmdEsperado)
 
@@ -197,35 +169,18 @@ void continuaInstruccion(void){
 
 	switch (cmdActual) {
 		case POSICION:
-			switch (cmdEsperado){
-				case COORD_X:
-					stm_x = (int16_t)  ((p_rx[1] << 8) |  p_rx[2]) ; //almacena X
-					p_cmd[0] = OK_;
-					p_cmd[3] = '\0';
-					cmdEsperado = COORD_Y;
-					ctrl_com = SEND_TXUART;
-				break;
-				case COORD_Y:
-					stm_y = (int16_t)  ((p_rx[1] << 8) |  p_rx[2]); //almacena Y
-					p_cmd[0] = OK_;
-					p_cmd[3] = '\0';
-					cmdEsperado = COORD_ANG;
-					ctrl_com = SEND_TXUART;
-				break;
-				case COORD_ANG:
-					stm_ang = (int16_t)  ((p_rx[1] << 8) |  p_rx[2]); //almacena el angulo
-					sprintf(p_topic, "Info/Nodo_ESP01/POSICION");
-					sprintf(p_txt, "X=%d, Y=%d, Ang=%d", stm_x, stm_y, stm_ang);
-					//flag_MQTT = 1;
-					
-					p_cmd[0] = OK_;
-					p_cmd[3] = '\0';
-					cmdActual = NO_CMD;
-					cmdEsperado = NO_CMD;
-					ctrl_com = SEND_BOTH;
-				break;
-			} //end switch cmdEsperado
-
+			stm_x = (int16_t)  ((p_rx[1] << 8) |  p_rx[2]) ; //almacena X
+			stm_y = (int16_t)  ((p_rx[3] << 8) |  p_rx[4]); //almacena Y
+			stm_ang = (int16_t)  ((p_rx[5] << 8) |  p_rx[6]); //almacena el angulo
+			sprintf(p_topic, "Info/Nodo_ESP01/POSICION");
+			sprintf(p_txt, "X=%d, Y=%d, Ang=%d", stm_x, stm_y, stm_ang);
+			//flag_MQTT = 1;
+			
+			p_cmd[0] = OK_;
+			p_cmd[7] = '\0';
+			cmdActual = NO_CMD;
+			cmdEsperado = NO_CMD;
+			ctrl_com = SEND_BOTH;
 		break;
 
 		case SET_HOME:
@@ -235,7 +190,7 @@ void continuaInstruccion(void){
 					p_cmd[0] = COORD_X;
 					p_cmd[1] = 0xA1;
 					p_cmd[2] = 0x0;
-					p_cmd[3] = '\0';
+					p_cmd[7] = '\0';
 					cmdSecuencia--;
 					ctrl_com = SEND_TXUART;
 				break;
@@ -244,7 +199,7 @@ void continuaInstruccion(void){
 					p_cmd[0] = COORD_Y;
 					p_cmd[1] = 0xB1;
 					p_cmd[2] = 0x0;
-					p_cmd[3] = '\0';
+					p_cmd[7] = '\0';
 					cmdSecuencia--;
 					ctrl_com = SEND_TXUART;
 				break;
@@ -253,7 +208,7 @@ void continuaInstruccion(void){
 					p_cmd[0] = COORD_ANG;
 					p_cmd[1] = 0xC1;
 					p_cmd[2] = 0x0;
-					p_cmd[3] = '\0';
+					p_cmd[7] = '\0';
 					cmdSecuencia--;
 					ctrl_com = SEND_TXUART;
 				break;

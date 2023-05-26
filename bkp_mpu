@@ -1,0 +1,17 @@
+case COORD_ANG:
+			mpu9265_Read_Magnet(&mpu9265);
+			magX = mpu9265.Magnet_X_RAW;
+			magY = mpu9265.Magnet_Y_RAW;
+
+			direccion_f32 = atan2f(magY, magX);
+			direccion_f32 *= (180.0/M_PI);
+//			direccion_i16 = direccion_f32/180;
+			direccion_i16 = direccion_f32;
+			direccion_i16 -= 138;
+
+			txUart[0] = COORD_ANG;
+			txUart[1] = (uint8_t)(direccion_i16 >> 8);
+			txUart[2] = (uint8_t)(direccion_i16 & 0xFF);
+			txUart[3] = '\0';
+			HAL_UART_Transmit_IT(&huart7, txUart, 4);
+		break;

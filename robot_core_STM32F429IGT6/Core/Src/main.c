@@ -71,14 +71,25 @@ typedef enum{
 
 /* USER CODE BEGIN PV */
 
-//variables de prueba//
-volatile uint8_t estatusPrueba = 0;
-volatile uint16_t ticks_prueba = 0xFFFF;
+//variables de orientacion//
+volatile uint8_t estatusOrientando = 0;
+volatile uint16_t ticks_orientando = 0xFFFF;
+
+//variables de mov_puntoAPunto//
+volatile uint8_t estatusPuntoAPunto = 0;
+volatile uint16_t ticks_PuntoAPunto = 0xFFFF;
+uint8_t flag_dest = 0; //indica si hay un destino establecido.
+float anguloDest_rad_f32; //angulo a la coordenanda de destino desde la posicion actual.
+float anguloDest_grad_f32;
+int16_t anguloDest_grad_i16;
+int16_t deltaAng_dest;
+int16_t deltaX_dest;
+int16_t deltaY_dest;
 
 //comunicacion//
-uint8_t rxUart[4];
+uint8_t rxUart[8];
 uint8_t flag_cmd = 0;
-uint8_t txUart[4];
+uint8_t txUart[8];
 uint8_t esp01Presente = 0;
 
 //modo de funcionamiento//
@@ -114,6 +125,8 @@ int16_t direccionGiro_grad_i16;
 float direccion_f32;
 float direccion_rad;
 int16_t direccion_i16;
+int16_t direccion_home;
+int16_t direccion_dest;
 
 //desplazamientos manuales//
 uint16_t avance_cant = 0;
@@ -129,6 +142,10 @@ float posX_f32 = 0;
 float posY_f32 = 0;
 int16_t posX_i16;
 int16_t posY_i16;
+int16_t posX_home;
+int16_t posY_home;
+int16_t posX_dest;
+int16_t posY_dest;
 
 
 //sensores//
@@ -247,27 +264,9 @@ int main(void)
 
   mpu9265_Init(&hi2c1);
 
-
-//  HAL_UART_Receive(&huart7, rxUart, 4, 500);
-//
-//  if (rxUart[0] == HOLA){
-//
-//	  if (!rxUart[3]){
-//		  txUart[0] = CMD_ERROR;
-//		  txUart[3] = '\0';
-//		  HAL_UART_Transmit_IT(&huart7, txUart, 4);
-//	  } else {
-//		  esp01Presente = 1;
-//		  txUart[0] = HOLA;
-//		  txUart[3] = '\0';
-//		  HAL_UART_Transmit_IT(&huart7, txUart, 4);
-//	  }
-//
-//  }
-
   init_controlRxTx (&huart7);
 
-  HAL_UART_Receive_IT(&huart7, rxUart, 4);
+  HAL_UART_Receive_IT(&huart7, rxUart, 8);
 
   if (!esp01Presente) {
 	  modoFuncionamiento = AUTOMATICO;
@@ -276,7 +275,7 @@ int main(void)
   }
 
   //para pruebas (comentar cuando no se requiera):
-  modoFuncionamiento = PRUEBA;
+  modoFuncionamiento = CALIBRA_MAG;
 
   /* USER CODE END 2 */
 
@@ -315,8 +314,9 @@ int main(void)
 			  periodo_pos = 0;
 		  }
 
-		  //para pruebas (comentar cuando no se requiera):
-		  if (ticks_prueba != 0) ticks_prueba--;
+		  //para la funcion orientando (comentar cuando no se requiera):
+		  if (ticks_orientando != 0) ticks_orientando--;
+		  if (ticks_PuntoAPunto != 0) ticks_PuntoAPunto--;
 
 	  } //fin if desbordeTIM7
 
@@ -870,25 +870,25 @@ void movimientoRC (void){
 
 void orientando (void){
 
-	switch (estatusPrueba) {
+	switch (estatusOrientando) {
 		case 0:
 			velL = -4;
 			velR = +4;
 			giroIzq_cant = 170;
-			estatusPrueba = 1;
+			estatusOrientando = 1;
 		break;
 		case 1:
 			if (giroIzq_cant < ((acum_encoderL + acum_encoderR) >> 1) ){
 				velL = 0;
 				velR = 0;
 				giroIzq_cant = 0;
-				estatusPrueba = 2;
-				ticks_prueba = 200;
+				estatusOrientando = 2;
+				ticks_orientando = 200;
 			}
 		break;
 		case 2:
-			if (!ticks_prueba){
-				estatusPrueba = 3;
+			if (!ticks_orientando){
+				estatusOrientando = 3;
 			}
 		break;
 		case 3:
@@ -910,6 +910,107 @@ void orientando (void){
 	}
 
 } //fin orientando ()
+
+
+void mov_puntoAPunto (void){
+
+	switch (estatusPuntoAPunto) {
+		case 0: //espera destino
+			if(flag_dest != 0){
+				estatusPuntoAPunto = 1;
+			}
+		break;
+		case 1: //gira al destino
+			deltaX_dest = posX_dest - posX_i16;
+			deltaY_dest = posY_dest - posY_i16;
+			anguloDest_rad_f32 = atan2f(deltaY_dest, deltaX_dest);
+			anguloDest_grad_f32 = anguloDest_rad_f32 * 180.0 / M_PI; //grados en float
+			anguloDest_grad_i16 = anguloDest_grad_f32; //grados en int16
+
+			deltaAng_dest = anguloDest_grad_i16 - direccionMag_grad_i16;
+			if (deltaAng_dest > 180) deltaAng_dest -= 360;
+			if (deltaAng_dest < -180) deltaAng_dest += 360;
+
+			if (deltaAng_dest > 17){
+				velL = -4;
+				velR = +4;
+				ticks_PuntoAPunto = 20;
+			}else if (deltaAng_dest < -17){
+				velL = +4;
+				velR = -4;
+				ticks_PuntoAPunto = 20;
+			}else{
+				velL = 0;
+				velR = 0;
+				if (!ticks_PuntoAPunto)	estatusPuntoAPunto = 2;
+			}
+
+		break;
+		case 2: //avanza al destino
+			deltaX_dest = posX_dest - posX_i16;
+			deltaY_dest = posY_dest - posY_i16;
+
+			if (  abs(deltaX_dest) < 2 && abs(deltaY_dest) < 2){
+				estatusPuntoAPunto = 3;
+				velL = 0;
+				velR = 0;
+				break;
+			}
+
+			anguloDest_rad_f32 = atan2f(deltaY_dest, deltaX_dest);
+			anguloDest_grad_f32 = anguloDest_rad_f32 * 180.0 / M_PI; //grados en float
+			anguloDest_grad_i16 = anguloDest_grad_f32; //grados en int16
+			deltaAng_dest = anguloDest_grad_i16 - direccionMag_grad_i16;
+			if (deltaAng_dest > 180) deltaAng_dest -= 360;
+			if (deltaAng_dest < -180) deltaAng_dest += 360;
+
+			if (deltaAng_dest > 17){
+				if (deltaAng_dest > 45){
+					velL = -4;
+					velR = +4;
+				}else{
+					velL = +4;
+					velR = +5;
+				}
+			}else if (deltaAng_dest < -17){
+				if (deltaAng_dest < -45){
+					velL = +4;
+					velR = -4;
+				}else{
+					velL = +5;
+					velR = +4;
+				}
+			}
+
+		break;
+		case 3: // orienta en la coordenada angulo del destino
+			deltaAng_dest = direccion_dest - direccionMag_grad_i16;
+			if (deltaAng_dest > 180) deltaAng_dest -= 360;
+			if (deltaAng_dest < -180) deltaAng_dest += 360;
+
+			if (deltaAng_dest > 17){
+				velL = -4;
+				velR = +4;
+			}else if (deltaAng_dest < -17){
+				velL = +4;
+				velR = -4;
+			}else{
+				velL = 0;
+				velR = 0;
+				estatusPuntoAPunto = 4;
+			}
+		break;
+		case 4: // finaliza la secuencia
+			flag_dest = 0;
+			estatusPuntoAPunto = 0;
+		break;
+	}
+
+} //fin mov_puntoAPunto ()
+
+
+
+
 
 
 void velocidades (int8_t vl, int8_t vr){
@@ -1019,7 +1120,7 @@ void posicionamiento (void){
 	posX_i16 = posX_f32; //posicion X en int16
 	posY_i16 = posY_f32; //posicion Y en int16
 
-
+/*
 	//por giroscopio
 	mpu9265_Read_Gyro(&mpu9265);
 	gyroZ = (float) (mpu9265.Gyro_Z_RAW / 131.0);
@@ -1040,8 +1141,9 @@ void posicionamiento (void){
 	direccionGiro_grad_i16 = direccionGiro_grad_f32; //grados en int16
 	posX_i16 = posX_f32; //posicion X en int16
 	posY_i16 = posY_f32; //posicion Y en int16
+*/
 
-
+/*
 	//por odometria
 	direccion_rad += (float) ( (distR - distL) * RADIANES_X_PULSO); //radianes en float
 
@@ -1059,7 +1161,7 @@ void posicionamiento (void){
 	direccion_i16 = direccion_f32; //grados en int16
 	posX_i16 = posX_f32; //posicion X en int16
 	posY_i16 = posY_f32; //posicion Y en int16
-
+*/
 
 } //fin posicionamiento ()
 
@@ -1198,8 +1300,10 @@ void modo_funcionamiento (void){
 		case MANUAL:
 			movimientoRC();
 		break;
-		case PRUEBA:
+		case CALIBRA_MAG:
 			orientando();
+		case PUNTO_A_PUNTO:
+			mov_puntoAPunto();
 		default:
 		break;
 	} //end switch modoFuncionamiento

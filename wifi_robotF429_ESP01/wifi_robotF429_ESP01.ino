@@ -5,7 +5,7 @@
 #include "comunicacionUART_ESP01.h"
 //#include "comunicacionUART_ESP01.c"
 
-#define RXUART_BUFFER_SIZE 4
+#define RXUART_BUFFER_SIZE 8
 
 #define TICK_PERIOD     10 //en ms.
 
@@ -39,7 +39,7 @@ unsigned long lastMsg = 0;
 String clientId;
 char rxUart [RXUART_BUFFER_SIZE];
 uint8_t sizeCmd = 0;
-uint8_t cmdFrame [4];
+uint8_t cmdFrame [8];
 
 
 //variables timer
@@ -71,11 +71,27 @@ void timer_update(void){
 void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 	
 	char pl[20];
+	char pl3[4];
 	/*
 	Serial.print("Message arrived [");
 	Serial.print(topic);
 	Serial.print("] ");
 	*/
+	
+	for (int i = 0; i < length; i++) {
+		cmdFrame[i] = (char)payload[i];
+	}
+	for (int i = length; i < 8; i++){
+		cmdFrame[i] = 0;
+	}
+	
+	iniciaInstruccion((T_CMD)cmdFrame[0]);
+	
+	Serial.write (cmdFrame, 8);
+	return;
+	
+	
+	
 	for (int i = 0; i < length; i++) {
 		pl[i] = (char)payload[i];
 	}
@@ -90,8 +106,8 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		cmdFrame[0] = AVANCE;
 		cmdFrame[1] = 0x00;
 		cmdFrame[2] = 0x14;
-		cmdFrame[3] = '\0';
-		Serial.write (cmdFrame, 4);
+		cmdFrame[7] = '\0';
+		Serial.write (cmdFrame, 8);
 		return;
 	}
 	
@@ -100,8 +116,8 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		cmdFrame[0] = RETROCEDE;
 		cmdFrame[1] = 0x00;
 		cmdFrame[2] = 0x14;
-		cmdFrame[3] = '\0';
-		Serial.write (cmdFrame, 4);
+		cmdFrame[7] = '\0';
+		Serial.write (cmdFrame, 8);
 		return;
 	}
 	
@@ -110,8 +126,8 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		cmdFrame[0] = GIRO_IZQ;
 		cmdFrame[1] = 0x00;
 		cmdFrame[2] = 0x07;
-		cmdFrame[3] = '\0';
-		Serial.write (cmdFrame, 4);
+		cmdFrame[7] = '\0';
+		Serial.write (cmdFrame, 8);
 		return;
 	}
 	
@@ -120,8 +136,8 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		cmdFrame[0] = GIRO_DER;
 		cmdFrame[1] = 0x00;
 		cmdFrame[2] = 0x07;
-		cmdFrame[3] = '\0';
-		Serial.write (cmdFrame, 4);
+		cmdFrame[7] = '\0';
+		Serial.write (cmdFrame, 8);
 		return;
 	}
 	
@@ -129,8 +145,8 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		//Serial.print ("manual");
 		cmdFrame[0] = MODO;
 		cmdFrame[1] = MANUAL;
-		cmdFrame[3] = '\0';
-		Serial.write (cmdFrame, 4);
+		cmdFrame[7] = '\0';
+		Serial.write (cmdFrame, 8);
 		return;
 	}
 	
@@ -138,16 +154,16 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		//Serial.print ("auto");
 		cmdFrame[0] = MODO;
 		cmdFrame[1] = AUTOMATICO;
-		cmdFrame[3] = '\0';
-		Serial.write (cmdFrame, 4);
+		cmdFrame[7] = '\0';
+		Serial.write (cmdFrame, 8);
 		return;
 	}
 	
 	if ( !strcmp(pl, "v_avan") ){//si recibe por MQTT el comando "auto"
 		//Serial.print ("auto");
 		cmdFrame[0] = VEL_AVANCE;
-		cmdFrame[3] = '\0';
-		Serial.write (cmdFrame, 4);
+		cmdFrame[7] = '\0';
+		Serial.write (cmdFrame, 8);
 		return;
 	}
 	
@@ -156,8 +172,8 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		cmdFrame[0] = COORD_ANG;
 		cmdFrame[1] = 90;
 		cmdFrame[2] = 0;
-		cmdFrame[3] = '\0';
-		Serial.write (cmdFrame, 4);
+		cmdFrame[7] = '\0';
+		Serial.write (cmdFrame, 8);
 		return;
 	}
 	
@@ -166,34 +182,67 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		cmdFrame[0] = COORD_ANG;
 		cmdFrame[1] = 0;
 		cmdFrame[2] = 90;
-		cmdFrame[3] = '\0';
-		Serial.write (cmdFrame, 4);
+		cmdFrame[7] = '\0';
+		Serial.write (cmdFrame, 8);
 		return;
 	}
 	
 	if ( !strcmp(pl, "d_giro") ){//si recibe por MQTT el comando "d_giro"
 		//Serial.print ("auto");
 		cmdFrame[0] = DIST_GIRO;
-		cmdFrame[3] = '\0';
-		Serial.write (cmdFrame, 4);
+		cmdFrame[7] = '\0';
+		Serial.write (cmdFrame, 8);
 		iniciaInstruccion(DIST_GIRO);
 		return;
 	}
 	
 	if ( !strcmp(pl, "pos") ){//si recibe por MQTT el comando "pos"
 		cmdFrame[0] = POSICION;
-		cmdFrame[3] = '\0';
+		cmdFrame[7] = '\0';
 		cmdEnProceso = 1;
-		Serial.write (cmdFrame, 4);
+		Serial.write (cmdFrame, 8);
 		iniciaInstruccion (POSICION);
 		return;
 	}
 	
 	if ( !strcmp(pl, "set_home") ){//si recibe por MQTT el comando "set_home"
 		cmdFrame[0] = SET_HOME;
-		cmdFrame[3] = '\0';
+		cmdFrame[7] = '\0';
 		cmdEnProceso = 1;
-		Serial.write (cmdFrame, 4);
+		Serial.write (cmdFrame, 8);
+		iniciaInstruccion (SET_HOME);
+		return;
+	}
+	
+	//comandos compuestos
+	for (int i = 0; i < 3; i++) {
+		pl3[i] = (char)payload[i];
+	}
+	pl3[3] = 0;
+	
+	if ( !strcmp(pl3, "DST") ){//si recibe por MQTT el comando "destino"
+		cmdFrame[0] = SET_HOME;
+		cmdFrame[7] = '\0';
+		cmdEnProceso = 1;
+		Serial.write (cmdFrame, 8);
+		iniciaInstruccion (SET_HOME);
+		return;
+	}
+	
+	if ( !strcmp(pl3, "SHM") ){//si recibe por MQTT el comando "set_home"
+		cmdFrame[0] = SET_HOME;
+		cmdFrame[7] = '\0';
+		cmdEnProceso = 1;
+		Serial.write (cmdFrame, 8);
+		iniciaInstruccion (SET_HOME);
+		return;
+	}
+	
+	if ( !strcmp(pl3, "GHM") ){//si recibe por MQTT el comando "go_home"
+		cmdFrame[0] = SET_HOME;
+		cmdFrame[7] = '\0';
+		cmdEnProceso = 1;
+		Serial.write (cmdFrame, 8);
 		iniciaInstruccion (SET_HOME);
 		return;
 	}
@@ -375,8 +424,8 @@ void setup() {
 	init_controlRxTx (txtTopic, texto, cmdFrame);
 	
 	cmdFrame[0] = HOLA;
-	cmdFrame[3] = '\0';
-	Serial.write (cmdFrame, 4);
+	cmdFrame[7] = '\0';
+	Serial.write (cmdFrame, 8);
     
 }
 
@@ -393,10 +442,10 @@ void loop() {
 				client.flush();
 			break;
 			case SEND_TXUART:
-				Serial.write (cmdFrame, 4);
+				Serial.write (cmdFrame, 8);
 			break;
 			case SEND_BOTH:
-				Serial.write (cmdFrame, 4);
+				Serial.write (cmdFrame, 8);
 				client.publish(txtTopic, texto);
 				client.flush();
 			default:
