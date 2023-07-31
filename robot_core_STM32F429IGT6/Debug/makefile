@@ -46,8 +46,8 @@ robot_core_STM32F429IGT6.bin \
 all: robot_core_STM32F429IGT6.elf secondary-outputs
 
 # Tool invocations
-robot_core_STM32F429IGT6.elf: $(OBJS) $(USER_OBJS) /home/lucho/STM32CubeIDE/ws_robotica/Robotica/robot_core_STM32F429IGT6/STM32F429IGTX_FLASH.ld
-	arm-none-eabi-gcc -o "robot_core_STM32F429IGT6.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/lucho/STM32CubeIDE/ws_robotica/Robotica/robot_core_STM32F429IGT6/STM32F429IGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="robot_core_STM32F429IGT6.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+robot_core_STM32F429IGT6.elf: $(OBJS) $(USER_OBJS) /home/lucho/STM32CubeIDE/01_robotica/Robotica/robot_core_STM32F429IGT6/STM32F429IGTX_FLASH.ld
+	arm-none-eabi-gcc -o "robot_core_STM32F429IGT6.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/lucho/STM32CubeIDE/01_robotica/Robotica/robot_core_STM32F429IGT6/STM32F429IGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="robot_core_STM32F429IGT6.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

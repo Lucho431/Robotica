@@ -46,8 +46,8 @@ robot_verde_STM32F103C6T6.bin \
 all: robot_verde_STM32F103C6T6.elf secondary-outputs
 
 # Tool invocations
-robot_verde_STM32F103C6T6.elf: $(OBJS) $(USER_OBJS) C:\Users\Dell\STM32CubeIDE\ws_rbt\robot_verde_STM32F103C6T6\STM32F103C6TX_FLASH.ld
-	arm-none-eabi-gcc -o "robot_verde_STM32F103C6T6.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\Dell\STM32CubeIDE\ws_rbt\robot_verde_STM32F103C6T6\STM32F103C6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="robot_verde_STM32F103C6T6.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+robot_verde_STM32F103C6T6.elf: $(OBJS) $(USER_OBJS) /home/lucho/STM32CubeIDE/01_robotica/Robotica/robot_verde_STM32F103C6T6/STM32F103C6TX_FLASH.ld
+	arm-none-eabi-gcc -o "robot_verde_STM32F103C6T6.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/home/lucho/STM32CubeIDE/01_robotica/Robotica/robot_verde_STM32F103C6T6/STM32F103C6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="robot_verde_STM32F103C6T6.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

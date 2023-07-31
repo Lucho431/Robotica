@@ -37,13 +37,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
  16 .debug_macro  0001655a  00000000  00000000  0002ac80  2**0
                   CONTENTS, READONLY, DEBUGGING
- 17 .debug_line   00007c47  00000000  00000000  000411da  2**0
+ 17 .debug_line   00007a97  00000000  00000000  000411da  2**0
                   CONTENTS, READONLY, DEBUGGING
- 18 .debug_str    00081da2  00000000  00000000  00048e21  2**0
+ 18 .debug_str    00081df0  00000000  00000000  00048c71  2**0
                   CONTENTS, READONLY, DEBUGGING
- 19 .comment      0000007b  00000000  00000000  000cabc3  2**0
+ 19 .comment      0000007b  00000000  00000000  000caa61  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  000026dc  00000000  00000000  000cac40  2**2
+ 20 .debug_frame  000026dc  00000000  00000000  000caadc  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -2073,97 +2073,44 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
  8000cf0:	40010800 	.word	0x40010800
 
 08000cf4 <Reset_Handler>:
-  .weak Reset_Handler
-  .type Reset_Handler, %function
-Reset_Handler:
-
-/* Copy the data segment initializers from flash to SRAM */
-  ldr r0, =_sdata
  8000cf4:	480c      	ldr	r0, [pc, #48]	; (8000d28 <LoopFillZerobss+0x12>)
-  ldr r1, =_edata
  8000cf6:	490d      	ldr	r1, [pc, #52]	; (8000d2c <LoopFillZerobss+0x16>)
-  ldr r2, =_sidata
  8000cf8:	4a0d      	ldr	r2, [pc, #52]	; (8000d30 <LoopFillZerobss+0x1a>)
-  movs r3, #0
  8000cfa:	2300      	movs	r3, #0
-  b LoopCopyDataInit
  8000cfc:	e002      	b.n	8000d04 <LoopCopyDataInit>
 
 08000cfe <CopyDataInit>:
-
-CopyDataInit:
-  ldr r4, [r2, r3]
  8000cfe:	58d4      	ldr	r4, [r2, r3]
-  str r4, [r0, r3]
  8000d00:	50c4      	str	r4, [r0, r3]
-  adds r3, r3, #4
  8000d02:	3304      	adds	r3, #4
 
 08000d04 <LoopCopyDataInit>:
-
-LoopCopyDataInit:
-  adds r4, r0, r3
  8000d04:	18c4      	adds	r4, r0, r3
-  cmp r4, r1
  8000d06:	428c      	cmp	r4, r1
-  bcc CopyDataInit
  8000d08:	d3f9      	bcc.n	8000cfe <CopyDataInit>
-  
-/* Zero fill the bss segment. */
-  ldr r2, =_sbss
  8000d0a:	4a0a      	ldr	r2, [pc, #40]	; (8000d34 <LoopFillZerobss+0x1e>)
-  ldr r4, =_ebss
  8000d0c:	4c0a      	ldr	r4, [pc, #40]	; (8000d38 <LoopFillZerobss+0x22>)
-  movs r3, #0
  8000d0e:	2300      	movs	r3, #0
-  b LoopFillZerobss
  8000d10:	e001      	b.n	8000d16 <LoopFillZerobss>
 
 08000d12 <FillZerobss>:
-
-FillZerobss:
-  str  r3, [r2]
  8000d12:	6013      	str	r3, [r2, #0]
-  adds r2, r2, #4
  8000d14:	3204      	adds	r2, #4
 
 08000d16 <LoopFillZerobss>:
-
-LoopFillZerobss:
-  cmp r2, r4
  8000d16:	42a2      	cmp	r2, r4
-  bcc FillZerobss
  8000d18:	d3fb      	bcc.n	8000d12 <FillZerobss>
-
-/* Call the clock system intitialization function.*/
-    bl  SystemInit
  8000d1a:	f7ff fdc5 	bl	80008a8 <SystemInit>
-/* Call static constructors */
-    bl __libc_init_array
  8000d1e:	f002 f945 	bl	8002fac <__libc_init_array>
-/* Call the application's entry point.*/
-  bl main
  8000d22:	f7ff fa8f 	bl	8000244 <main>
-  bx lr
  8000d26:	4770      	bx	lr
-  ldr r0, =_sdata
  8000d28:	20000000 	.word	0x20000000
-  ldr r1, =_edata
  8000d2c:	20000010 	.word	0x20000010
-  ldr r2, =_sidata
  8000d30:	08003048 	.word	0x08003048
-  ldr r2, =_sbss
  8000d34:	20000010 	.word	0x20000010
-  ldr r4, =_ebss
  8000d38:	2000012c 	.word	0x2000012c
 
 08000d3c <ADC1_2_IRQHandler>:
- * @retval : None
-*/
-    .section .text.Default_Handler,"ax",%progbits
-Default_Handler:
-Infinite_Loop:
-  b Infinite_Loop
  8000d3c:	e7fe      	b.n	8000d3c <ADC1_2_IRQHandler>
 	...
 
@@ -2254,7 +2201,7 @@ __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
     HAL_NVIC_SetPriority(SysTick_IRQn, TickPriority, 0U);
  8000da0:	2200      	movs	r2, #0
  8000da2:	6879      	ldr	r1, [r7, #4]
- 8000da4:	f04f 30ff 	mov.w	r0, #4294967295
+ 8000da4:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
  8000da8:	f000 f903 	bl	8000fb2 <HAL_NVIC_SetPriority>
     uwTickPrio = TickPriority;
  8000dac:	4a06      	ldr	r2, [pc, #24]	; (8000dc8 <HAL_InitTick+0x5c>)
@@ -2527,7 +2474,7 @@ __STATIC_INLINE uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t P
 
   return (
            ((PreemptPriority & (uint32_t)((1UL << (PreemptPriorityBits)) - 1UL)) << SubPriorityBits) |
- 8000f28:	f04f 32ff 	mov.w	r2, #4294967295
+ 8000f28:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
  8000f2c:	69bb      	ldr	r3, [r7, #24]
  8000f2e:	fa02 f303 	lsl.w	r3, r2, r3
  8000f32:	43da      	mvns	r2, r3
@@ -2536,7 +2483,7 @@ __STATIC_INLINE uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t P
  8000f38:	697b      	ldr	r3, [r7, #20]
  8000f3a:	409a      	lsls	r2, r3
            ((SubPriority     & (uint32_t)((1UL << (SubPriorityBits    )) - 1UL)))
- 8000f3c:	f04f 31ff 	mov.w	r1, #4294967295
+ 8000f3c:	f04f 31ff 	mov.w	r1, #4294967295	; 0xffffffff
  8000f40:	697b      	ldr	r3, [r7, #20]
  8000f42:	fa01 f303 	lsl.w	r3, r1, r3
  8000f46:	43d9      	mvns	r1, r3
@@ -2581,7 +2528,7 @@ __STATIC_INLINE uint32_t SysTick_Config(uint32_t ticks)
  8000f74:	6053      	str	r3, [r2, #4]
   NVIC_SetPriority (SysTick_IRQn, (1UL << __NVIC_PRIO_BITS) - 1UL); /* set Priority for Systick Interrupt */
  8000f76:	210f      	movs	r1, #15
- 8000f78:	f04f 30ff 	mov.w	r0, #4294967295
+ 8000f78:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
  8000f7c:	f7ff ff90 	bl	8000ea0 <__NVIC_SetPriority>
   SysTick->VAL   = 0UL;                                             /* Load the SysTick Counter Value */
  8000f80:	4b05      	ldr	r3, [pc, #20]	; (8000f98 <SysTick_Config+0x40>)
