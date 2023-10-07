@@ -29,6 +29,7 @@ typedef enum{
 	CANCEL_,		//instrucción de cancelación
 	CMD_ERROR,		//recepcion fallida
 	MODO,			//modo de funcionamiento (manual o automático)
+	INFOMSG,			//manda 6 caracteres con info
 	//posicionamiento:
 	COORD_X,		//coordenada X (en pulsos del encoder) (consulta o parte de una trama)
 	COORD_Y,		//coordenada Y (un pulsos del encoder) (consulta o parte de una trama)

@@ -1,0 +1,6 @@
+codigo de errores:
+
+1: error en el byte EOF (End Of Frame) (rx[7])
+2: modo de funcionamiento no válido (modoFuncionamiento) (p_rx[1] en comando MODO)
+3: comando de instruccion desconocido (p_rx[0] == ??)
+4: no es el comando esperado (cmdEsperado != p_rx[0])

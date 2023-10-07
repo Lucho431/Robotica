@@ -75,7 +75,34 @@ T_CTRL_COM controlRxTxUART (char rx[]){
 
 	if (cmdEsperado != NO_CMD){
 		continuaInstruccion();
-	}
+	}else{
+		
+		switch (rx[0]){
+			case INFOMSG:
+				cmdEsperado = INFOMSG;
+				cmdActual = INFOMSG;
+				continuaInstruccion();			
+			break;
+			case CMD_ERROR:
+				cmdEsperado = CMD_ERROR;
+				cmdActual = CMD_ERROR;
+				continuaInstruccion();
+			break;
+			case OK_:
+				cmdEsperado = OK_;
+				cmdActual = OK_;
+				continuaInstruccion();				
+			break;
+			default:
+				sprintf(p_topic, "Info/Nodo_ESP01/ERROR");
+				sprintf(p_txt, "Error en la secuencia");
+				cmdActual = NO_CMD;
+				cmdEsperado = NO_CMD;
+				ctrl_com = SEND_MQTT;
+			break;
+		} //end switch rx
+		
+	} //end if cmdEsperado
 
 	return ctrl_com;
 
@@ -230,6 +257,30 @@ void continuaInstruccion(void){
 			cmdActual = NO_CMD;
 			cmdEsperado = NO_CMD;
 			ctrl_com = SEND_MQTT;
+		break;
+		case INFOMSG:
+			sprintf(p_topic, "Info/Nodo_ESP01/INFO_MSG");
+			sprintf(p_txt, "msg: %c%c%c%c%c%c", p_rx[1], p_rx[2], p_rx[3], p_rx[4], p_rx[5], p_rx[6] );
+			cmdActual = NO_CMD;
+			cmdEsperado = NO_CMD;
+			ctrl_com = SEND_MQTT;
+		break;
+		case CMD_ERROR:
+			sprintf(p_topic, "Info/Nodo_ESP01/ERROR");
+			sprintf(p_txt, "Error en STM32. Codigo: %d. Valor: %d.", p_rx[1], p_rx[2]);
+			p_cmd[0] = OK_;
+			p_cmd[7] = '\0';
+			cmdActual = NO_CMD;
+			cmdEsperado = NO_CMD;
+			ctrl_com = SEND_BOTH;
+		break;
+		case OK_:
+			sprintf(p_topic, "Info/Nodo_ESP01/OK");
+			sprintf(p_txt, "comando cumplido");
+			cmdActual = NO_CMD;
+			cmdEsperado = NO_CMD;
+			ctrl_com = SEND_MQTT;		
+		break;
 		default:
 		break;
 	} //end switch cmdActual

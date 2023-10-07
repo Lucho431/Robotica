@@ -32,6 +32,7 @@
 #include "mpu_9265_lfs.h"
 #include "stdlib.h"
 #include "math.h"
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -147,7 +148,6 @@ int16_t posY_home;
 int16_t posX_dest;
 int16_t posY_dest;
 
-
 //sensores//
 uint8_t SI, SF, SD;
 uint8_t sensores_dist = 0;
@@ -158,7 +158,6 @@ uint8_t desbordeTIM7 = 0; //desborda cada 10 ms.
 uint8_t periodo_Encoder = 7;
 uint8_t periodo_SR04 = 0;
 uint8_t periodo_pos = 14; //offset para operar intercalado con el periodo encoder
-
 
 //SR-04//
 uint32_t ic1 = 0;
@@ -180,12 +179,13 @@ int16_t encoderR_memPositivo = 0;
 int16_t encoderL_memNegativo = 0;
 int16_t encoderR_memNegativo = 0;
 
-
 //velocidades//
 int8_t velL = 5; //en ranuras cada 210 ms
 int8_t velR = 5; //en ranuras cada 210 ms
 uint8_t velLFinal = 5; //en ranuras cada 210 ms
 uint8_t velRFinal = 5; //en ranuras cada 210 ms
+
+
 
 
 /* USER CODE END PV */
@@ -901,10 +901,16 @@ void orientando (void){
 			}else{
 				velL = 0;
 				velR = 0;
+				estatusOrientando = 4;
 			}
 
 		break;
-
+		case 4:
+			modoFuncionamiento = MANUAL;
+			estatusOrientando = 0;
+			sprintf((char*)txUart, "modMAN");
+			send_info(txUart);
+		break;
 		default:
 		break;
 	}
@@ -918,6 +924,8 @@ void mov_puntoAPunto (void){
 		case 0: //espera destino
 			if(flag_dest != 0){
 				estatusPuntoAPunto = 1;
+				sprintf((char*)txUart, "girand");
+				send_info(txUart);
 			}
 		break;
 		case 1: //gira al destino
@@ -942,7 +950,11 @@ void mov_puntoAPunto (void){
 			}else{
 				velL = 0;
 				velR = 0;
-				if (!ticks_PuntoAPunto)	estatusPuntoAPunto = 2;
+				if (!ticks_PuntoAPunto){
+					estatusPuntoAPunto = 2;
+					sprintf((char*)txUart, "avanza");
+					send_info(txUart);
+				}
 			}
 
 		break;
@@ -954,6 +966,8 @@ void mov_puntoAPunto (void){
 				estatusPuntoAPunto = 3;
 				velL = 0;
 				velR = 0;
+				sprintf((char*)txUart, "orient");
+				send_info(txUart);
 				break;
 			}
 
@@ -1003,6 +1017,9 @@ void mov_puntoAPunto (void){
 		case 4: // finaliza la secuencia
 			flag_dest = 0;
 			estatusPuntoAPunto = 0;
+			sprintf((char*)txUart, "ENDEST");
+			send_info(txUart);
+
 		break;
 	}
 

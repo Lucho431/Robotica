@@ -56,6 +56,7 @@ void controlRxTxUART (uint8_t rx[]){
 
 	if (rx[7] != 0){
 		tx[0] = CMD_ERROR;
+		tx[1] = 1;
 		tx[7] = '\0';
 		HAL_UART_Transmit_IT(uart_handler, tx, 8);
 		HAL_UART_Receive_IT(uart_handler, rx, 8);
@@ -116,6 +117,7 @@ void iniciaInstruccion (void){
 					break;
 				default:
 					tx[0] = CMD_ERROR;
+					tx[1] = 2;
 					tx[7] = '\0';
 					HAL_UART_Transmit_IT(uart_handler, tx, 8);
 			} //end switch p_rx[1]
@@ -221,6 +223,8 @@ void iniciaInstruccion (void){
 		break;
 		default:
 			tx[0] = CMD_ERROR;
+			tx[1]= 3;
+			tx[2]= p_rx[0];
 			tx[7] = '\0';
 			HAL_UART_Transmit_IT(uart_handler, tx, 8);
 		break;
@@ -236,6 +240,7 @@ void continuaInstruccion(void){
 		cmdEsperado = NO_CMD;
 		cmdSecuencia = 0;
 		tx[0] = CMD_ERROR;
+		tx[1] = 4;
 		tx[7] = '\0';
 		HAL_UART_Transmit_IT(uart_handler, tx, 8);
 		return;
@@ -327,6 +332,20 @@ void continuaInstruccion(void){
 
 } //end continuaInstruccion()
 
+
+void send_info (uint8_t msg[]){
+	if (cmdActual == NO_CMD){
+		tx[0] = INFOMSG;
+		tx[1] = msg[0];
+		tx[2] = msg[1];
+		tx[3] = msg[2];
+		tx[4] = msg[3];
+		tx[5] = msg[4];
+		tx[6] = msg[5];
+		tx[7] = '\0';
+		HAL_UART_Transmit_IT(uart_handler, tx, 8);
+	}
+}
 
 ///////////////////////////////
 /////       OLD         ///////
