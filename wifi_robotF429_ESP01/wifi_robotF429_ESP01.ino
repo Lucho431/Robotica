@@ -3,7 +3,6 @@
 
 #include "comandosUart.h"
 #include "comunicacionUART_ESP01.h"
-//#include "comunicacionUART_ESP01.c"
 
 #define RXUART_BUFFER_SIZE 8
 
@@ -34,13 +33,21 @@ const char* mqtt_server = "192.168.0.86";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+String clientId;
 unsigned long lastMsg = 0;
 
-String clientId;
-char rxUart [RXUART_BUFFER_SIZE];
 uint8_t sizeCmd = 0;
-uint8_t cmdFrame [8];
 
+char rxUart [RXUART_BUFFER_SIZE];
+uint8_t cmdUart [3][8];
+uint8_t index_uartIn = 0;
+uint8_t index_uartOut = 0;
+uint8_t cola_uart = 0;
+
+uint8_t cmdMqtt [3][8];
+uint8_t index_mqttIn = 0;
+uint8_t index_mqttOut = 0;
+uint8_t cola_mqtt = 0;
 
 //variables timer
 uint8_t flag_tick = 0;
@@ -70,182 +77,25 @@ void timer_update(void){
 
 void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 	
-	char pl[20];
-	char pl3[4];
-	/*
-	Serial.print("Message arrived [");
-	Serial.print(topic);
-	Serial.print("] ");
-	*/
+	if (cola_mqtt < 3){
+		cmdMqtt [index_mqttIn] [0] = payload [0];
+		cmdMqtt [index_mqttIn] [1] = payload [1];
+		cmdMqtt [index_mqttIn] [2] = payload [2];
+		cmdMqtt [index_mqttIn] [3] = payload [3];
+		cmdMqtt [index_mqttIn] [4] = payload [4];
+		cmdMqtt [index_mqttIn] [5] = payload [5];
+		cmdMqtt [index_mqttIn] [6] = payload [6];
+		cmdMqtt [index_mqttIn] [7] = payload [7];
+		if (index_mqttIn < 2){
+			index_mqttIn++;
+		}else{
+			index_mqttIn = 0;
+		} //end if index_mqttIn
+		cola_mqtt++;
+	} //end if cola_mqtt
 	
-	for (int i = 0; i < length; i++) {
-		cmdFrame[i] = (char)payload[i];
-	}
-	for (int i = length; i < 8; i++){
-		cmdFrame[i] = 0;
-	}
-	
-	iniciaInstruccion((T_CMD)cmdFrame[0]);
-	
-	Serial.write (cmdFrame, 8);
+	Serial.write (cmdUart, 8);
 	return;
-	
-	
-	
-	for (int i = 0; i < length; i++) {
-		pl[i] = (char)payload[i];
-	}
-	pl[length] = '\0';
-	/*
-	Serial.print(pl);
-	Serial.println();
-	*/
-	
-	if ( !strcmp(pl, "up") ){//si recibe por MQTT el comando "up"
-		//Serial.print ("arriba");
-		cmdFrame[0] = AVANCE;
-		cmdFrame[1] = 0x00;
-		cmdFrame[2] = 0x14;
-		cmdFrame[7] = '\0';
-		Serial.write (cmdFrame, 8);
-		return;
-	}
-	
-	if ( !strcmp(pl, "down") ){//si recibe por MQTT el comando "down"
-		//Serial.print ("abajo");
-		cmdFrame[0] = RETROCEDE;
-		cmdFrame[1] = 0x00;
-		cmdFrame[2] = 0x14;
-		cmdFrame[7] = '\0';
-		Serial.write (cmdFrame, 8);
-		return;
-	}
-	
-	if ( !strcmp(pl, "left") ){//si recibe por MQTT el comando "left"
-		//Serial.print ("izquierda");
-		cmdFrame[0] = GIRO_IZQ;
-		cmdFrame[1] = 0x00;
-		cmdFrame[2] = 0x07;
-		cmdFrame[7] = '\0';
-		Serial.write (cmdFrame, 8);
-		return;
-	}
-	
-	if ( !strcmp(pl, "right") ){//si recibe por MQTT el comando "right"
-		//Serial.print ("derecha");
-		cmdFrame[0] = GIRO_DER;
-		cmdFrame[1] = 0x00;
-		cmdFrame[2] = 0x07;
-		cmdFrame[7] = '\0';
-		Serial.write (cmdFrame, 8);
-		return;
-	}
-	
-	if ( !strcmp(pl, "manual") ){//si recibe por MQTT el comando "manual"
-		//Serial.print ("manual");
-		cmdFrame[0] = MODO;
-		cmdFrame[1] = MANUAL;
-		cmdFrame[7] = '\0';
-		Serial.write (cmdFrame, 8);
-		return;
-	}
-	
-	if ( !strcmp(pl, "auto") ){//si recibe por MQTT el comando "auto"
-		//Serial.print ("auto");
-		cmdFrame[0] = MODO;
-		cmdFrame[1] = AUTOMATICO;
-		cmdFrame[7] = '\0';
-		Serial.write (cmdFrame, 8);
-		return;
-	}
-	
-	if ( !strcmp(pl, "v_avan") ){//si recibe por MQTT el comando "auto"
-		//Serial.print ("auto");
-		cmdFrame[0] = VEL_AVANCE;
-		cmdFrame[7] = '\0';
-		Serial.write (cmdFrame, 8);
-		return;
-	}
-	
-	if ( !strcmp(pl, "ang+90") ){//si recibe por MQTT el comando "d_giro"
-		//Serial.print ("auto");
-		cmdFrame[0] = COORD_ANG;
-		cmdFrame[1] = 90;
-		cmdFrame[2] = 0;
-		cmdFrame[7] = '\0';
-		Serial.write (cmdFrame, 8);
-		return;
-	}
-	
-	if ( !strcmp(pl, "ang-90") ){//si recibe por MQTT el comando "d_giro"
-		//Serial.print ("auto");
-		cmdFrame[0] = COORD_ANG;
-		cmdFrame[1] = 0;
-		cmdFrame[2] = 90;
-		cmdFrame[7] = '\0';
-		Serial.write (cmdFrame, 8);
-		return;
-	}
-	
-	if ( !strcmp(pl, "d_giro") ){//si recibe por MQTT el comando "d_giro"
-		//Serial.print ("auto");
-		cmdFrame[0] = DIST_GIRO;
-		cmdFrame[7] = '\0';
-		Serial.write (cmdFrame, 8);
-		iniciaInstruccion(DIST_GIRO);
-		return;
-	}
-	
-	if ( !strcmp(pl, "pos") ){//si recibe por MQTT el comando "pos"
-		cmdFrame[0] = POSICION;
-		cmdFrame[7] = '\0';
-		cmdEnProceso = 1;
-		Serial.write (cmdFrame, 8);
-		iniciaInstruccion (POSICION);
-		return;
-	}
-	
-	if ( !strcmp(pl, "set_home") ){//si recibe por MQTT el comando "set_home"
-		cmdFrame[0] = SET_HOME;
-		cmdFrame[7] = '\0';
-		cmdEnProceso = 1;
-		Serial.write (cmdFrame, 8);
-		iniciaInstruccion (SET_HOME);
-		return;
-	}
-	
-	//comandos compuestos
-	for (int i = 0; i < 3; i++) {
-		pl3[i] = (char)payload[i];
-	}
-	pl3[3] = 0;
-	
-	if ( !strcmp(pl3, "DST") ){//si recibe por MQTT el comando "destino"
-		cmdFrame[0] = SET_HOME;
-		cmdFrame[7] = '\0';
-		cmdEnProceso = 1;
-		Serial.write (cmdFrame, 8);
-		iniciaInstruccion (SET_HOME);
-		return;
-	}
-	
-	if ( !strcmp(pl3, "SHM") ){//si recibe por MQTT el comando "set_home"
-		cmdFrame[0] = SET_HOME;
-		cmdFrame[7] = '\0';
-		cmdEnProceso = 1;
-		Serial.write (cmdFrame, 8);
-		iniciaInstruccion (SET_HOME);
-		return;
-	}
-	
-	if ( !strcmp(pl3, "GHM") ){//si recibe por MQTT el comando "go_home"
-		cmdFrame[0] = SET_HOME;
-		cmdFrame[7] = '\0';
-		cmdEnProceso = 1;
-		Serial.write (cmdFrame, 8);
-		iniciaInstruccion (SET_HOME);
-		return;
-	}
 
 } //fin callback()
 
@@ -358,60 +208,10 @@ void connections_handler() {
     }//end switch
 }//end connections_handler ()
 
-
-void serialCom_handler(void){
-	sizeCmd = Serial.readBytes(rxUart, RXUART_BUFFER_SIZE);
-	//Serial.println(rxUart);
-	
-	//controlRxTxUART (rxUart);
-	
-	//if (rxUart == "hola"){
-	//if (!strcmp(rxUart, "hola")){
-	if(rxUart[0] == HOLA){
-		client.publish("Info/Nodo_ESP01", "STM32 dice hola");
-		client.flush();
-		return;
-	}
-	
-	if (!strcmp(rxUart, "auto")){
-		client.publish("Info/Nodo_ESP01", "el robot está en AUTO");
-		client.flush();
-		return;
-	}
-	
-	if (!strcmp(rxUart, "manu")){
-		client.publish("Info/Nodo_ESP01", "el robot está en MANUAL");
-		client.flush();
-		return;
-	}
-	
-	//VEL_AVANCE
-	if (rxUart[0] == VEL_AVANCE){
-		sprintf(texto, "%d", (uint16_t) ( (rxUart[1] << 8) |  rxUart[2]) );
-		client.publish("Info/Nodo_ESP01/VEL_AVANCE", texto);
-		client.flush();
-		return;
-	}
-	
-	//COORD_ANG
-	if (rxUart[0] == DIST_GIRO){
-		sprintf(texto, "%d", (int16_t) ( (rxUart[1] << 8) |  rxUart[2]) );
-		client.publish("Info/Nodo_ESP01/COORD_ANG", texto);
-		client.flush();
-		return;
-	}
-	
-		
-	for (uint8_t i = 0; i < RXUART_BUFFER_SIZE; i++){
-		rxUart[i] = '\0';
-	}
-	
-} //end serialCom_handler()
-
-
 void setup() {
 	
 	Serial.begin(115200);
+	Serial.setTimeout(100);
     randomSeed(micros());
     
     //Serial.println("algo");
@@ -421,11 +221,11 @@ void setup() {
     
 	connections_handler();
 	
-	init_controlRxTx (txtTopic, texto, cmdFrame);
+	init_controlRxTx (txtTopic, texto, cmdUart);
 	
-	cmdFrame[0] = HOLA;
-	cmdFrame[7] = '\0';
-	Serial.write (cmdFrame, 8);
+	cmdUart[0] = HOLA;
+	cmdUart[7] = '\0';
+	Serial.write (cmdUart, 8);
     
 }
 
@@ -434,28 +234,54 @@ void loop() {
 	timer_update();
 	
 	if (Serial.available() > 0){
-		//serialCom_handler();
+		
 		sizeCmd = Serial.readBytes(rxUart, RXUART_BUFFER_SIZE);
-		switch (controlRxTxUART (rxUart) ){
-			case SEND_MQTT:
-				client.publish(txtTopic, texto);
-				client.flush();
-			break;
-			case SEND_TXUART:
-				Serial.write (cmdFrame, 8);
-			break;
-			case SEND_BOTH:
-				Serial.write (cmdFrame, 8);
-				client.publish(txtTopic, texto);
-				client.flush();
-			default:
-			break;
-		} //end switch controlRxTxUART
+		if (sizeCmd == 8){
+			if (cola_uart < 3){
+				cmdUart [index_uartIn] [0] = rxUart [0];
+				cmdUart [index_uartIn] [1] = rxUart [1];
+				cmdUart [index_uartIn] [2] = rxUart [2];
+				cmdUart [index_uartIn] [3] = rxUart [3];
+				cmdUart [index_uartIn] [4] = rxUart [4];
+				cmdUart [index_uartIn] [5] = rxUart [5];
+				cmdUart [index_uartIn] [6] = rxUart [6];
+				cmdUart [index_uartIn] [7] = rxUart [7];
+				if (index_uartIn < 2){
+					index_uartIn++;
+				}else{
+					index_uartIn = 0;
+				} //end if index_uartIn
+				cola_uart++;
+			} //end if cola_uart
+		} //end if (sizeCmd == 8)
 	} //end if Serial.available
 	
+	if (cola_uart != 0){
+		sprintf(txtTopic, "Info/Nodo_ESP01/INFO_MSG");
+		sprintf(texto, "%c%c%c%c%c%c", cmdUart [index_uartOut][1], cmdUart [index_uartOut][2], cmdUart [index_uartOut][3], cmdUart [index_uartOut][4], cmdUart [index_uartOut][5], cmdUart [index_uartOut][6]);
+		client.publish(txtTopic, texto);
+		client.flush();
+		if (index_uartOut < 2){
+			index_uartOut++;
+		}else{
+			index_uartOut = 0;
+		} //end if index_uartOut
+		cola_uart--;
+	} //end if cola_uart
+	
+	if (cola_mqtt != 0){
+		Serial.write( &cmdMqtt[index_mqttOut][0], 8);
+		if (index_mqttOut < 2){
+			index_mqttOut++;
+		}else{
+			index_mqttOut = 0;
+		} //end if index_mqttOut
+		cola_mqtt--;
+	} //end if cola_mqtt
+	
+	
 	if (flag_tick){
-		if (reconnect_time) reconnect_time--;
-		
+		if (reconnect_time != 0) reconnect_time--;
 		flag_tick = 0;		
 	} //end if flag_tick
 	
