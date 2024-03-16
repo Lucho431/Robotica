@@ -202,7 +202,6 @@ void encoders (void);
 void posicionamiento (void);
 void PWM_motores (void);
 void aceleracion (void);
-void check_rxUart (void);
 
 /* USER CODE END PFP */
 
@@ -1201,112 +1200,6 @@ void test_respuesta (void){
 	HAL_UART_Transmit(&huart7, txUart, 4, 20);
 	HAL_UART_Receive_IT(&huart7, rxUart, 4);
 }
-
-void check_rxUart (void){
-
-	if (rxUart[3] != 0){
-		txUart[0] = CMD_ERROR;
-		txUart[3] = '\0';
-		HAL_UART_Transmit_IT(&huart7, txUart, 4);
-		HAL_UART_Receive_IT(&huart7, rxUart, 4);
-		return;
-	}
-
-	switch (rxUart[0]) {
-		case HOLA:
-			esp01Presente = 1;
-			txUart[0] = HOLA;
-			txUart[3] = '\0';
-			HAL_UART_Transmit_IT(&huart7, txUart, 4);
-
-		break;
-		case MODO:
-
-			switch (rxUart[1]) {
-				case AUTOMATICO:
-					modoFuncionamiento = AUTOMATICO;
-					flag_encoders = 0;
-					txUart[0] = OK_;
-					txUart[3] = '\0';
-					HAL_UART_Transmit_IT(&huart7, txUart, 4);
-				break;
-				case MANUAL:
-					status_movimiento = QUIETO;
-					modoFuncionamiento = MANUAL;
-					txUart[0] = OK_;
-					txUart[3] = '\0';
-					HAL_UART_Transmit_IT(&huart7, txUart, 4);
-				break;
-				default:
-					txUart[0] = CMD_ERROR;
-					txUart[3] = '\0';
-					HAL_UART_Transmit_IT(&huart7, txUart, 4);
-			} //end switch rxUart[1]
-
-		break;
-		case AVANCE:
-			avance_cant += (uint16_t) (rxUart[2] + (rxUart[1] << 8));
-
-			txUart[0] = OK_;
-			txUart[3] = '\0';
-			HAL_UART_Transmit_IT(&huart7, txUart, 4);
-		break;
-		case RETROCEDE:
-			retroceso_cant += (uint16_t) (rxUart[2] + (rxUart[1] << 8));
-
-			txUart[0] = OK_;
-			txUart[3] = '\0';
-			HAL_UART_Transmit_IT(&huart7, txUart, 4);
-		break;
-		case GIRO_IZQ:
-			giroIzq_cant += (uint16_t) (rxUart[2] + (rxUart[1] << 8));
-
-			txUart[0] = OK_;
-			txUart[3] = '\0';
-			HAL_UART_Transmit_IT(&huart7, txUart, 4);
-			//sprintf(txUart, "IZQU");
-		break;
-		case GIRO_DER:
-			giroDer_cant += (uint16_t) (rxUart[2] + (rxUart[1] << 8));
-
-			txUart[0] = OK_;
-			txUart[3] = '\0';
-			HAL_UART_Transmit_IT(&huart7, txUart, 4);
-			//sprintf(txUart, "DERE");
-		break;
-		case VEL_AVANCE:
-			mpu9265_Read_Accel(&mpu9265);
-
-			txUart[0] = VEL_AVANCE;
-			txUart[1] = (uint8_t)(mpu9265.Accel_X_RAW >> 8);
-			txUart[2] = (uint8_t)(mpu9265.Accel_X_RAW & 0xFF);
-			txUart[3] = '\0';
-			HAL_UART_Transmit_IT(&huart7, txUart, 4);
-		break;
-		case DIST_GIRO:
-			mpu9265_Read_Magnet(&mpu9265);
-			magX = mpu9265.Magnet_X_RAW;
-			magY = mpu9265.Magnet_Y_RAW;
-
-			magX = (float) (mpu9265.Magnet_X_RAW + 388.0); //media empirica
-			magY = (float) (mpu9265.Magnet_Y_RAW - 234.0); //media empirica
-			direccion_f32 = atan2f(magY, magX);
-			direccion_f32 *= (180.0/M_PI);
-
-			direccion_i16 = direccion_f32;
-
-			txUart[0] = DIST_GIRO;
-			txUart[1] = (uint8_t)(direccion_i16 >> 8);
-			txUart[2] = (uint8_t)(direccion_i16 & 0xFF);
-			txUart[3] = '\0';
-			HAL_UART_Transmit_IT(&huart7, txUart, 4);
-		break;
-
-	} //end switch rxUart[0]
-
-	HAL_UART_Receive_IT(&huart7, rxUart, 4);
-
-} //end check_rxUart ()
 
 void modo_funcionamiento (void){
 

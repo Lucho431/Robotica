@@ -94,7 +94,7 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		cola_mqtt++;
 	} //end if cola_mqtt
 	
-	Serial.write (cmdUart, 8);
+	//Serial.write (cmdUart, 8);
 	return;
 
 } //fin callback()
@@ -221,11 +221,11 @@ void setup() {
     
 	connections_handler();
 	
-	init_controlRxTx (txtTopic, texto, cmdUart);
+	//init_controlRxTx (txtTopic, texto, cmdUart);
 	
-	cmdUart[0] = HOLA;
-	cmdUart[7] = '\0';
-	Serial.write (cmdUart, 8);
+	cmdUart[0][0] = HOLA;
+	cmdUart[0][7] = '\0';
+	Serial.write (&cmdUart[0][0], 8);
     
 }
 
