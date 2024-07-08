@@ -107,20 +107,24 @@ void connections_handler() {
         
         case TRYING_WIFI:
             // We start by connecting to a WiFi network
+            /*
             Serial.println();
             Serial.print("Connecting to ");
             Serial.println(ssid);
+            */
 
             WiFi.mode(WIFI_STA);
             if (WiFi.begin(ssid, password) != WL_CONNECTED){
-                Serial.print(".");
+                //Serial.print(".");
                 conn_status = WIFI_TIMING_OUT;
                 reconnect_time = 500;
             }else{
+				/*
                 Serial.println("");
                 Serial.println("WiFi connected");
                 Serial.println("IP address: ");
                 Serial.println(WiFi.localIP());
+                */
                 reconnect_time = 0;
                 conn_status = TRYING_MQTT;
             }
@@ -133,10 +137,12 @@ void connections_handler() {
                     conn_status = TRYING_WIFI;
                 }
             }else{
+				/*
                 Serial.println("");
                 Serial.println("WiFi connected");
                 Serial.println("IP address: ");
                 Serial.println(WiFi.localIP());
+                */
                 reconnect_time = 0;
                 conn_status = TRYING_MQTT;
             }
@@ -146,33 +152,39 @@ void connections_handler() {
         case TRYING_MQTT:
             
             if (WiFi.status() != WL_CONNECTED){
-                Serial.println("Wifi connection lost. restarting...");
+                //Serial.println("Wifi connection lost. restarting...");
                 conn_status = TRYING_WIFI;
                 break;
             }
             
             
-            Serial.print("Attempting MQTT connection...");
+            //Serial.print("Attempting MQTT connection...");
             // Create a random client ID
             //clientId = "Nodo_ventilador";
             clientId += String(random(0xffff), HEX); //must be random because of the uMQTTbroker bug
             
             // Attempt to connect
             if (client.connect(clientId.c_str())) {
-                Serial.println("connected");
+                //Serial.println("connected");
                 // Once connected, publish an announcement...
                 client.publish("Hola", "Nodo_ESP01");
                 // ... and resubscribe
                 client.subscribe("Cmd/Nodo_ESP01/#");
                 
+                cmdUart[0][0] = HOLA;
+				cmdUart[0][7] = '\0';
+				Serial.write (&cmdUart[0][0], 8);
+                
                 conn_status = ALL_CONNECTED;
                 
             } else {
+				/*
                 Serial.print("failed, rc=");
                 Serial.print(client.state());
                 Serial.println(" try again in 5 seconds");
-                // Wait 5 seconds before retrying
+                */
                 
+                // Wait 5 seconds before retrying
                 conn_status = MQTT_TIMING_OUT;
                 reconnect_time = 500;
             }
@@ -181,7 +193,7 @@ void connections_handler() {
         case MQTT_TIMING_OUT:
             
             if (WiFi.status() != WL_CONNECTED){
-                Serial.println("Wifi connection lost. restarting...");
+                //Serial.println("Wifi connection lost. restarting...");
                 conn_status = TRYING_WIFI;
                 break;
             }
@@ -193,7 +205,7 @@ void connections_handler() {
         
         case ALL_CONNECTED:
             if (WiFi.status() != WL_CONNECTED){
-                Serial.println("Wifi connection lost. restarting...");
+                //Serial.println("Wifi connection lost. restarting...");
                 conn_status = TRYING_WIFI;
                 break;
             }
@@ -222,10 +234,11 @@ void setup() {
 	connections_handler();
 	
 	//init_controlRxTx (txtTopic, texto, cmdUart);
-	
+	/*
 	cmdUart[0][0] = HOLA;
 	cmdUart[0][7] = '\0';
 	Serial.write (&cmdUart[0][0], 8);
+	*/
     
 }
 
@@ -257,8 +270,21 @@ void loop() {
 	} //end if Serial.available
 	
 	if (cola_uart != 0){
-		sprintf(txtTopic, "Info/Nodo_ESP01/INFO_MSG");
-		sprintf(texto, "%c%c%c%c%c%c", cmdUart [index_uartOut][1], cmdUart [index_uartOut][2], cmdUart [index_uartOut][3], cmdUart [index_uartOut][4], cmdUart [index_uartOut][5], cmdUart [index_uartOut][6]);
+		switch (cmdUart [index_uartOut][0]){
+			case DIST_GIRO:
+				sprintf(txtTopic, "Info/Nodo_ESP01/DIST_GIRO");
+				sprintf(texto, "%u,%u,%u,%u,%u,%u,%u,%u", cmdUart [index_uartOut][0], cmdUart [index_uartOut][1], cmdUart [index_uartOut][2], cmdUart [index_uartOut][3], cmdUart [index_uartOut][4], cmdUart [index_uartOut][5], cmdUart [index_uartOut][6], cmdUart [index_uartOut][7]);
+			break;
+			case INFOMSG:
+				sprintf(txtTopic, "Info/Nodo_ESP01/INFO_MSG");
+				sprintf(texto, "%c%c%c%c%c%c%c%c", cmdUart [index_uartOut][0], cmdUart [index_uartOut][1], cmdUart [index_uartOut][2], cmdUart [index_uartOut][3], cmdUart [index_uartOut][4], cmdUart [index_uartOut][5], cmdUart [index_uartOut][6], cmdUart [index_uartOut][7]);
+			break;
+			default:
+				sprintf(txtTopic, "Info/Nodo_ESP01/INDEF");
+				sprintf(texto, "%u,%u,%u,%u,%u,%u,%u,%u", cmdUart [index_uartOut][0], cmdUart [index_uartOut][1], cmdUart [index_uartOut][2], cmdUart [index_uartOut][3], cmdUart [index_uartOut][4], cmdUart [index_uartOut][5], cmdUart [index_uartOut][6], cmdUart [index_uartOut][7]);		
+			break;
+		} //end switch cmdUart
+		
 		client.publish(txtTopic, texto);
 		client.flush();
 		if (index_uartOut < 2){

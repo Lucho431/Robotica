@@ -18,12 +18,13 @@
         "nl": false,
         "rap": true,
         "rh": 0,
-        "x": 170,
+        "x": 190,
         "y": 100,
         "wires": [
             [
-                "3d7176a13971eff0",
-                "a3213dbc68440c03"
+                "a3213dbc68440c03",
+                "afec2d214d797241",
+                "3d7176a13971eff0"
             ]
         ]
     },
@@ -60,7 +61,7 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "[17,0,20,0,0,0,0,0]",
+        "payload": "[18,0,20,0,0,0,0,0]",
         "payloadType": "bin",
         "topic": "topic",
         "topicType": "msg",
@@ -87,7 +88,7 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "[15,0,7,0,0,0,0,0]",
+        "payload": "[16,0,7,0,0,0,0,0]",
         "payloadType": "bin",
         "topic": "topic",
         "topicType": "msg",
@@ -114,7 +115,7 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "[16,0,7,0,0,0,0,0]",
+        "payload": "[17,0,7,0,0,0,0,0]",
         "payloadType": "bin",
         "topic": "topic",
         "topicType": "msg",
@@ -141,7 +142,7 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "[14,0,20,0,0,0,0,0]",
+        "payload": "[15,0,20,0,0,0,0,0]",
         "payloadType": "bin",
         "topic": "topic",
         "topicType": "msg",
@@ -165,8 +166,8 @@
         "label": "Rx payload:",
         "format": "{{msg.payload}}",
         "layout": "row-spread",
-        "x": 810,
-        "y": 160,
+        "x": 790,
+        "y": 140,
         "wires": []
     },
     {
@@ -184,7 +185,7 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "[5,1,0,0,0,0,0]",
+        "payload": "[5,1,0,0,0,0,0,0]",
         "payloadType": "bin",
         "topic": "topic",
         "topicType": "msg",
@@ -212,7 +213,7 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "[5,0,0,0,0,0,0]",
+        "payload": "[5,0,0,0,0,0,0,0]",
         "payloadType": "bin",
         "topic": "topic",
         "topicType": "msg",
@@ -253,8 +254,8 @@
         "label": "Rx topic:",
         "format": "{{msg.topic}}",
         "layout": "row-spread",
-        "x": 800,
-        "y": 120,
+        "x": 840,
+        "y": 60,
         "wires": []
     },
     {
@@ -290,7 +291,7 @@
         "label": "Tx topic:",
         "format": "{{msg.topic}}",
         "layout": "row-spread",
-        "x": 800,
+        "x": 780,
         "y": 200,
         "wires": []
     },
@@ -307,7 +308,7 @@
         "format": "{{msg.payload}}",
         "layout": "row-spread",
         "x": 810,
-        "y": 240,
+        "y": 320,
         "wires": []
     },
     {
@@ -327,7 +328,7 @@
         "wires": [
             [
                 "1c852a0917261a6c",
-                "ae9efdb0cebcd7c3"
+                "2bb388f3d8149298"
             ]
         ]
     },
@@ -350,8 +351,8 @@
         "payloadType": "str",
         "topic": " ",
         "topicType": "str",
-        "x": 210,
-        "y": 340,
+        "x": 170,
+        "y": 320,
         "wires": [
             [
                 "a3213dbc68440c03",
@@ -389,27 +390,6 @@
         ]
     },
     {
-        "id": "7d133aaa42e83780",
-        "type": "mqtt in",
-        "z": "cbc36fa5a4935551",
-        "name": "",
-        "topic": "Info/Nodo_ESP01/VEL_AVANCE",
-        "qos": "2",
-        "datatype": "auto",
-        "broker": "48f075c996337301",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "x": 150,
-        "y": 220,
-        "wires": [
-            [
-                "3d7176a13971eff0",
-                "a3213dbc68440c03"
-            ]
-        ]
-    },
-    {
         "id": "500302b3cb0b33fd",
         "type": "ui_button",
         "z": "cbc36fa5a4935551",
@@ -424,11 +404,11 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "[23,0,0,0,0,0,0,0]",
+        "payload": "[24,0,0,0,0,0,0,0]",
         "payloadType": "bin",
         "topic": "topic",
         "topicType": "msg",
-        "x": 110,
+        "x": 90,
         "y": 900,
         "wires": [
             [
@@ -451,8 +431,8 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "v_avan",
-        "payloadType": "str",
+        "payload": "[21,0,0,0,0,0,0,0]",
+        "payloadType": "bin",
         "topic": "topic",
         "topicType": "msg",
         "x": 100,
@@ -460,27 +440,6 @@
         "wires": [
             [
                 "be3ac9fc90dd2a4a"
-            ]
-        ]
-    },
-    {
-        "id": "f0b88a095b965795",
-        "type": "mqtt in",
-        "z": "cbc36fa5a4935551",
-        "name": "",
-        "topic": "Info/Nodo_ESP01/COORD_ANG",
-        "qos": "2",
-        "datatype": "auto",
-        "broker": "48f075c996337301",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "x": 150,
-        "y": 280,
-        "wires": [
-            [
-                "a3213dbc68440c03",
-                "3d7176a13971eff0"
             ]
         ]
     },
@@ -513,13 +472,13 @@
         "width": 0,
         "height": 0,
         "passthru": false,
-        "label": "set home",
+        "label": "consulta home",
         "tooltip": "",
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "set_home",
-        "payloadType": "str",
+        "payload": "[12,0,0,0,0,0,0,0]",
+        "payloadType": "bin",
         "topic": "topic",
         "topicType": "msg",
         "x": 100,
@@ -545,7 +504,7 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "[9,0,0,0,0,0,0]",
+        "payload": "[10,0,0,0,0,0,0,0]",
         "payloadType": "bin",
         "topic": "topic",
         "topicType": "msg",
@@ -580,8 +539,8 @@
         "y": 1180,
         "wires": [
             [
-                "7056c4c6323f2400",
-                "a66a6c5457a73f0c"
+                "a66a6c5457a73f0c",
+                "8f2be3d602949ff9"
             ]
         ]
     },
@@ -608,8 +567,8 @@
         "y": 1240,
         "wires": [
             [
-                "7056c4c6323f2400",
-                "a66a6c5457a73f0c"
+                "a66a6c5457a73f0c",
+                "8f2be3d602949ff9"
             ]
         ]
     },
@@ -637,34 +596,6 @@
         "wires": [
             [
                 "d5ade9e839ab602b"
-            ]
-        ]
-    },
-    {
-        "id": "918005cc71ae83cf",
-        "type": "ui_numeric",
-        "z": "cbc36fa5a4935551",
-        "name": "",
-        "label": "angulo",
-        "tooltip": "",
-        "group": "2f56778897a4c7c9",
-        "order": 3,
-        "width": 0,
-        "height": 0,
-        "wrap": false,
-        "passthru": false,
-        "topic": "A",
-        "topicType": "str",
-        "format": "{{value}}",
-        "min": 0,
-        "max": "359",
-        "step": 1,
-        "x": 110,
-        "y": 1300,
-        "wires": [
-            [
-                "7056c4c6323f2400",
-                "a66a6c5457a73f0c"
             ]
         ]
     },
@@ -712,7 +643,7 @@
         "encoding": "none",
         "allProps": false,
         "x": 570,
-        "y": 1340,
+        "y": 1400,
         "wires": [
             [
                 "a93aabacef8f5686"
@@ -789,15 +720,15 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "[10,0,5,0,3,0,90,0]",
+        "payload": "[11,0,0,0,0,0,0,0]",
         "payloadType": "bin",
-        "topic": "topic",
-        "topicType": "msg",
-        "x": 230,
+        "topic": "D",
+        "topicType": "str",
+        "x": 100,
         "y": 1560,
         "wires": [
             [
-                "0c4dd171470cd88c"
+                "f58e27b80e1faf35"
             ]
         ]
     },
@@ -816,15 +747,16 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "",
-        "payloadType": "str",
-        "topic": "topic",
-        "topicType": "msg",
-        "x": 250,
+        "payload": "[13,0,0,0,0,0,0,0]",
+        "payloadType": "bin",
+        "topic": "G",
+        "topicType": "str",
+        "x": 130,
         "y": 1620,
         "wires": [
             [
-                "28963ad61ae1da61"
+                "28963ad61ae1da61",
+                "f58e27b80e1faf35"
             ]
         ]
     },
@@ -843,15 +775,16 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "",
-        "payloadType": "str",
-        "topic": "topic",
-        "topicType": "msg",
-        "x": 250,
+        "payload": "[14,0,0,0,0,0,0,0]",
+        "payloadType": "bin",
+        "topic": "S",
+        "topicType": "str",
+        "x": 130,
         "y": 1680,
         "wires": [
             [
-                "d2b5189c0cf2258b"
+                "d2b5189c0cf2258b",
+                "f58e27b80e1faf35"
             ]
         ]
     },
@@ -964,9 +897,7 @@
         "x": 680,
         "y": 1620,
         "wires": [
-            [
-                "0c4dd171470cd88c"
-            ]
+            []
         ]
     },
     {
@@ -1021,9 +952,7 @@
         "x": 640,
         "y": 1680,
         "wires": [
-            [
-                "0c4dd171470cd88c"
-            ]
+            []
         ]
     },
     {
@@ -1048,19 +977,17 @@
         "id": "7056c4c6323f2400",
         "type": "function",
         "z": "cbc36fa5a4935551",
-        "name": "",
+        "name": "OLD",
         "func": "var coord;\n\nif (!flow.get(\"X\")) {\n    flow.set(\"X\", 0);\n}\nif (!flow.get(\"Y\")) {\n    flow.set(\"Y\", 0);\n}\nif (!flow.get(\"A\")) {\n    flow.set(\"A\", 0);\n}\n\nswitch (msg.topic){\n    \n    case \"X\":\n        flow.set(\"X\", msg.payload);\n    break;\n    case \"Y\":\n        flow.set(\"Y\", msg.payload);\n    break;\n    case \"A\":\n        flow.set(\"A\", msg.payload);\n    break;\n    default:\n    break;\n}\n\nX = flow.get(\"X\");\nY = flow.get(\"Y\");\nA = flow.get(\"A\");\n\n//msg.payload = [X,Y,A];\nmsg.payload = (X<<16)+(Y<<8)+(A<<0);\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 420,
+        "x": 670,
         "y": 1300,
         "wires": [
-            [
-                "18e2d22b2f839ef1"
-            ]
+            []
         ]
     },
     {
@@ -1097,7 +1024,7 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "[5,2,0,0,0,0,0]",
+        "payload": "[5,2,0,0,0,0,0,0]",
         "payloadType": "bin",
         "topic": "topic",
         "topicType": "msg",
@@ -1144,11 +1071,12 @@
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "false",
+        "complete": "payload",
+        "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 760,
-        "y": 1100,
+        "x": 730,
+        "y": 500,
         "wires": []
     },
     {
@@ -1166,7 +1094,7 @@
         "color": "",
         "bgcolor": "",
         "icon": "",
-        "payload": "[5,3,0,0,0,0,0]",
+        "payload": "[5,3,0,0,0,0,0,0]",
         "payloadType": "bin",
         "topic": "topic",
         "topicType": "msg",
@@ -1176,6 +1104,135 @@
             [
                 "be3ac9fc90dd2a4a"
             ]
+        ]
+    },
+    {
+        "id": "2bb388f3d8149298",
+        "type": "function",
+        "z": "cbc36fa5a4935551",
+        "name": "toString",
+        "func": "// Obtener el buffer desde el mensaje de entrada\nlet buffer = msg.payload; // Suponiendo que el buffer está en msg.payload\n\n// Convertir el buffer a una cadena de números separados por coma\nlet numbersString = Array.from(buffer).join(', ');\n\n// Asignar la cadena de números al mensaje de salida\nmsg.payload = numbersString;\n\n// Enviar el mensaje modificado\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 260,
+        "wires": [
+            [
+                "ae9efdb0cebcd7c3"
+            ]
+        ]
+    },
+    {
+        "id": "f58e27b80e1faf35",
+        "type": "function",
+        "z": "cbc36fa5a4935551",
+        "name": "setupCmdCoord",
+        "func": "var cmd;\nvar buffer = Buffer.alloc(8); // Crea un buffer de 8 bytes\n\n// Actualiza las variables en el flujo según el tema del mensaje\nswitch (msg.topic) {\n    case \"G\":\n        buffer.writeUInt8(13, 0); // Escribe 13 en el primer byte\n        break;\n    case \"S\":\n        buffer.writeUInt8(14, 0); // Escribe 14 en el primer byte\n        break;\n    case \"D\":\n        buffer.writeUInt8(11, 0); // Escribe 11 en el primer byte\n        break;\n    default:\n        break;\n}\n\n\n\n// Obtiene los valores actuales de \"X\", \"Y\" y \"A\" desde el flujo\nvar X = flow.get(\"X\");\nvar Y = flow.get(\"Y\");\nvar A = flow.get(\"A\");\n\nbuffer.writeUInt16BE(X, 1);       // Escribe X como un uint16 Big Endian en los byte 1 y 2\nbuffer.writeUInt16BE(Y, 3);       // Escribe Y como un uint16 Big Endian en los byte 3 y 4\nbuffer.writeUInt16BE(A, 5);       // Escribe A como un uint16 Big Endian en los byte 5 y 6\n\n// Asigna el buffer al payload del mensaje\nmsg.payload = buffer;\n\n// Devuelve el mensaje modificado\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 1780,
+        "wires": [
+            [
+                "0c4dd171470cd88c"
+            ]
+        ]
+    },
+    {
+        "id": "dce5b05e16266c70",
+        "type": "inject",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 1440,
+        "wires": [
+            [
+                "8f2be3d602949ff9"
+            ]
+        ]
+    },
+    {
+        "id": "8f2be3d602949ff9",
+        "type": "function",
+        "z": "cbc36fa5a4935551",
+        "name": "setVarCoord",
+        "func": "var coord;\n\n// Verifica si la variable de flujo \"X\" existe; si no existe, inicialízala a 0\nif (!flow.get(\"X\")) {\n    flow.set(\"X\", 0);\n}\n\n// Verifica si la variable de flujo \"Y\" existe; si no existe, inicialízala a 0\nif (!flow.get(\"Y\")) {\n    flow.set(\"Y\", 0);\n}\n\n// Verifica si la variable de flujo \"A\" existe; si no existe, inicialízala a 0\nif (!flow.get(\"A\")) {\n    flow.set(\"A\", 0);\n}\n\n// Selecciona el valor del mensaje según el tema (topic) del mensaje\nswitch (msg.topic) {\n    case \"X\":\n        flow.set(\"X\", msg.payload); // Establece el valor de \"X\" en el flujo según el payload del mensaje\n        break;\n    case \"Y\":\n        flow.set(\"Y\", msg.payload); // Establece el valor de \"Y\" en el flujo según el payload del mensaje\n        break;\n    case \"A\":\n        flow.set(\"A\", msg.payload); // Establece el valor de \"A\" en el flujo según el payload del mensaje\n        break;\n    default:\n        break;\n}\n\n// Obtiene los valores actuales de \"X\", \"Y\" y \"A\" desde el flujo\nX = flow.get(\"X\");\nY = flow.get(\"Y\");\nA = flow.get(\"A\");\n\n// Construye el payload del mensaje como una única variable de 24 bits, combinando X, Y y A\nmsg.payload = (X << 16) + (Y << 8) + (A << 0);\n\n// Devuelve el mensaje modificado\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 1300,
+        "wires": [
+            [
+                "18e2d22b2f839ef1"
+            ]
+        ]
+    },
+    {
+        "id": "5bf3d0491ea2534a",
+        "type": "ui_slider",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "label": "angulo",
+        "tooltip": "",
+        "group": "2f56778897a4c7c9",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "outs": "end",
+        "topic": "A",
+        "topicType": "str",
+        "min": 0,
+        "max": "359",
+        "step": 1,
+        "x": 90,
+        "y": 1300,
+        "wires": [
+            [
+                "8f2be3d602949ff9",
+                "a66a6c5457a73f0c"
+            ]
+        ]
+    },
+    {
+        "id": "9ab7ee056c6637ef",
+        "type": "function",
+        "z": "cbc36fa5a4935551",
+        "name": "toString",
+        "func": "// Obtener el buffer desde el mensaje de entrada\nlet buffer = msg.payload; // Suponiendo que el buffer está en msg.payload\n\n// Verificar que el buffer tenga al menos 8 bytes\nif (buffer.length < 8) {\n    // Si el buffer tiene menos de 6 bytes, puedes manejar este caso según tus necesidades\n    console.warn(\"El buffer tiene menos de 8 bytes.\");\n    return null; // O retorna un mensaje de error, dependiendo de tu lógica\n}\n\n// Tomar los primeros 8 bytes del buffer\nlet firstSixBytes = buffer.slice(0, 8);\n\n// Convertir los bytes a una cadena de números separados por coma\nlet numbersString = Array.from(firstSixBytes).join(', ');\n\n// Asignar la cadena de números al mensaje de salida\nmsg.payload = numbersString;\n\n// Enviar el mensaje modificado\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 140,
+        "wires": [
+            []
         ]
     },
     {

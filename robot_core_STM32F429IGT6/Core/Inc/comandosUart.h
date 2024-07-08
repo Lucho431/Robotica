@@ -22,7 +22,7 @@
 //#define RETROCEDE
 
 typedef enum{
-	//cmd base:
+	//cmd base:3
 	NO_CMD = 0x00, 	//comando nulo
 	HOLA = 0x01, 	//mensaje inicial
 	OK_,			//confirmación de recepcion

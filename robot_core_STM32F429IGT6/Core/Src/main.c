@@ -99,6 +99,9 @@ T_MODO modoFuncionamiento= MANUAL;
 //prueba//
 uint8_t read_button = 1;
 uint8_t last_button = 1;
+uint32_t last_cuentaTIM7=0;
+uint32_t duracionWhile1 = 0; // en 10 * ns
+uint8_t flag_quieto = 0;
 
 //movimiento//
 T_MOV status_movimiento = QUIETO;
@@ -123,10 +126,14 @@ float direccionGiro_rad_f32;
 float direccionGiro_grad_f32;
 int16_t direccionGiro_grad_i16;
 
+float coef_gyro = 0.0; //0.98;
+float coef_mag = 1.0; //0.02;
+
 float direccion_f32;
 float direccion_rad;
+float direccion_grad;
 int16_t direccion_i16;
-int16_t direccion_home;
+int16_t direccion_home = 0;
 int16_t direccion_dest;
 
 //desplazamientos manuales//
@@ -143,8 +150,8 @@ float posX_f32 = 0;
 float posY_f32 = 0;
 int16_t posX_i16;
 int16_t posY_i16;
-int16_t posX_home;
-int16_t posY_home;
+int16_t posX_home = 0;
+int16_t posY_home = 0;
 int16_t posX_dest;
 int16_t posY_dest;
 
@@ -158,6 +165,7 @@ uint8_t desbordeTIM7 = 0; //desborda cada 10 ms.
 uint8_t periodo_Encoder = 7;
 uint8_t periodo_SR04 = 0;
 uint8_t periodo_pos = 14; //offset para operar intercalado con el periodo encoder
+uint8_t flag_checkUart = 0;
 
 //SR-04//
 uint32_t ic1 = 0;
@@ -248,6 +256,8 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
+  //flag_quieto = 1; //comentar para que se mueva el robot
+
   HAL_TIM_Base_Start_IT(&htim7); //desborda cada 10 ms.
 
   HAL_TIM_Base_Start(&htim2); //encoder R.
@@ -264,7 +274,7 @@ int main(void)
   mpu9265_Init(&hi2c1);
 
   init_controlRxTx (&huart7);
-
+  HAL_Delay(5); //mas de 1ms para omitir la basura del arranque del ESP01
   HAL_UART_Receive_IT(&huart7, rxUart, 8);
 
   if (!esp01Presente) {
@@ -283,6 +293,7 @@ int main(void)
   while (1)
   {
 
+
 	  if (flag_cmd != 0){
 		  controlRxTxUART(rxUart);
 		  flag_cmd = 0;
@@ -295,11 +306,12 @@ int main(void)
 	  velocidades(velL, velR);
 
 
-	  if (desbordeTIM7 != 0){
+	  if (desbordeTIM7 != 0){ //cada 10 ms
 		  periodo_Encoder += desbordeTIM7;
 		  periodo_SR04 += desbordeTIM7;
 		  periodo_pos += desbordeTIM7;
 		  desbordeTIM7 = 0;
+
 		  if (periodo_Encoder > 21){ // en 10 * ms
 			  flag_encoders = 1;
 			  periodo_Encoder = 0;
@@ -317,7 +329,24 @@ int main(void)
 		  if (ticks_orientando != 0) ticks_orientando--;
 		  if (ticks_PuntoAPunto != 0) ticks_PuntoAPunto--;
 
+		  //valida que la uart no tenga el buffer a medio llenar (trama desfasada)
+		  if (huart7.RxXferCount != 8){
+			  if (!flag_checkUart){
+				  flag_checkUart = 1;
+			  }else{
+				  HAL_UART_AbortReceive_IT(&huart7);
+				  flag_cmd = 0;
+				  HAL_UART_Receive_IT(&huart7, rxUart, 8);
+			  }
+		  }else{
+			  flag_checkUart = 0;
+		  } //end if huart7.RxXferCount
+
 	  } //fin if desbordeTIM7
+
+	  //cuenta duracion del bucle
+	  duracionWhile1 = TIM7->CNT - last_cuentaTIM7;
+	  last_cuentaTIM7 = TIM7->CNT;
 
 
     /* USER CODE END WHILE */
@@ -891,10 +920,10 @@ void orientando (void){
 			}
 		break;
 		case 3:
-			if (direccionMag_grad_i16 > 17){
+			if (direccion_i16 > 17){
 				velL = +4;
 				velR = -4;
-			}else if (direccionMag_grad_i16 < -17){
+			}else if (direccion_i16 < -17){
 				velL = -4;
 				velR = +4;
 			}else{
@@ -905,6 +934,7 @@ void orientando (void){
 
 		break;
 		case 4:
+			direccionGiro_rad_f32 = direccionMag_rad_f32;
 			modoFuncionamiento = MANUAL;
 			estatusOrientando = 0;
 			sprintf((char*)txUart, "modMAN");
@@ -934,7 +964,7 @@ void mov_puntoAPunto (void){
 			anguloDest_grad_f32 = anguloDest_rad_f32 * 180.0 / M_PI; //grados en float
 			anguloDest_grad_i16 = anguloDest_grad_f32; //grados en int16
 
-			deltaAng_dest = anguloDest_grad_i16 - direccionMag_grad_i16;
+			deltaAng_dest = anguloDest_grad_i16 - direccion_i16;
 			if (deltaAng_dest > 180) deltaAng_dest -= 360;
 			if (deltaAng_dest < -180) deltaAng_dest += 360;
 
@@ -973,7 +1003,7 @@ void mov_puntoAPunto (void){
 			anguloDest_rad_f32 = atan2f(deltaY_dest, deltaX_dest);
 			anguloDest_grad_f32 = anguloDest_rad_f32 * 180.0 / M_PI; //grados en float
 			anguloDest_grad_i16 = anguloDest_grad_f32; //grados en int16
-			deltaAng_dest = anguloDest_grad_i16 - direccionMag_grad_i16;
+			deltaAng_dest = anguloDest_grad_i16 - direccion_i16;
 			if (deltaAng_dest > 180) deltaAng_dest -= 360;
 			if (deltaAng_dest < -180) deltaAng_dest += 360;
 
@@ -997,7 +1027,7 @@ void mov_puntoAPunto (void){
 
 		break;
 		case 3: // orienta en la coordenada angulo del destino
-			deltaAng_dest = direccion_dest - direccionMag_grad_i16;
+			deltaAng_dest = direccion_dest - direccion_i16;
 			if (deltaAng_dest > 180) deltaAng_dest -= 360;
 			if (deltaAng_dest < -180) deltaAng_dest += 360;
 
@@ -1030,6 +1060,14 @@ void mov_puntoAPunto (void){
 
 
 void velocidades (int8_t vl, int8_t vr){
+
+	if (flag_quieto != 0){
+		HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
+		HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
+		HAL_GPIO_WritePin(OUT_in4_GPIO_Port, OUT_in4_Pin, 0);
+		HAL_GPIO_WritePin(OUT_in3_GPIO_Port, OUT_in3_Pin, 0);
+		return;
+	}
 
 	if (vl < 0){
 		HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
@@ -1128,14 +1166,15 @@ void posicionamiento (void){
 	magY /= magX_media;
 
 	direccionMag_rad_f32 = atan2f(magY, magX); //radianes en float
+
 	posX_f32 += (float) (distC * 0.1 * cosf(direccionMag_rad_f32)); //posicion X en float
 	posY_f32 += (float) (distC * 0.1 * sinf(direccionMag_rad_f32)); //posicion Y en float
 	distC = 0;
 	direccionMag_grad_f32 = direccionMag_rad_f32 * 180.0 / M_PI; //grados en float
 	direccionMag_grad_i16 = direccionMag_grad_f32; //grados en int16
+	direccion_i16 = direccionMag_grad_i16;
 	posX_i16 = posX_f32; //posicion X en int16
 	posY_i16 = posY_f32; //posicion Y en int16
-
 /*
 	//por giroscopio
 	mpu9265_Read_Gyro(&mpu9265);
@@ -1151,13 +1190,26 @@ void posicionamiento (void){
 		direccionGiro_grad_f32 -= 360.0;
 	}
 	direccionGiro_rad_f32 = (direccionGiro_grad_f32 * M_PI / 180.0); //radianes en float
-	posX_f32 += (float) (distC * cosf(direccionGiro_rad_f32)); //posicion X en float
-	posY_f32 += (float) (distC * sinf(direccionGiro_rad_f32)); //posicion Y en float
-	distC = 0;
-	direccionGiro_grad_i16 = direccionGiro_grad_f32; //grados en int16
+
+//	posX_f32 += (float) (distC * cosf(direccionGiro_rad_f32)); //posicion X en float
+//	posY_f32 += (float) (distC * sinf(direccionGiro_rad_f32)); //posicion Y en float
+//	distC = 0;
+//	direccionGiro_grad_i16 = direccionGiro_grad_f32; //grados en int16
+//	posX_i16 = posX_f32; //posicion X en int16
+//	posY_i16 = posY_f32; //posicion Y en int16
+*/
+	/*
+	//filtro complementario magnetometro y giroscopio
+	direccion_rad = coef_gyro * direccionGiro_rad_f32 + coef_mag * direccionMag_rad_f32;
+
+	//coordenadas
+	direccion_grad = direccion_rad * 180.0 / M_PI; //grados en float
+	direccion_i16 = direccion_grad; //grados en int16
+	posX_f32 += (float) (distC * 0.1 * cosf(direccion_rad)); //posicion X en float
+	posY_f32 += (float) (distC * 0.1 * sinf(direccion_rad)); //posicion Y en float
 	posX_i16 = posX_f32; //posicion X en int16
 	posY_i16 = posY_f32; //posicion Y en int16
-*/
+	*/
 
 /*
 	//por odometria

@@ -1,5 +1,5 @@
-comunicacionUART.c:50:6:init_controlRxTx	16	static
-comunicacionUART.c:55:6:controlRxTxUART	16	static
-comunicacionUART.c:79:6:iniciaInstruccion	8	static
-comunicacionUART.c:236:6:continuaInstruccion	8	static
-comunicacionUART.c:336:6:send_info	16	static
+comunicacionUART.c:54:6:init_controlRxTx	16	static
+comunicacionUART.c:59:6:controlRxTxUART	16	static
+comunicacionUART.c:83:6:iniciaInstruccion	8	static
+comunicacionUART.c:282:6:continuaInstruccion	8	static
+comunicacionUART.c:382:6:send_info	16	static
