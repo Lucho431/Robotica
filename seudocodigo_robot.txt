@@ -1,0 +1,24 @@
+seudocodigo:
+
+
+init_sensorDistancia();
+init_IMU();
+init_encoders();
+init_controlMotores();
+init_timersNecesarios();
+init_comESP01();
+calibraMagnetometro();
+
+main loop{
+    
+    check_sensores();
+    defino_nuevaPos();
+    set_velocidadMotores();
+    check_comESP01();
+    
+
+}end main loop
+
+
+
+
