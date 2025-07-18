@@ -6,19 +6,39 @@ init_IMU();
 init_encoders();
 init_controlMotores();
 init_timersNecesarios();
-init_comESP01();
 calibraMagnetometro();
+init_comESP01();
 
 main loop{
     
-    check_sensores();
-    defino_nuevaPos();
+    check_modoFuncionamiento();
+    check_sensores(); //incluye encoders
+    defino_nuevaPos(); //odometria
     set_velocidadMotores();
+    mapeo(); //A EVALUAR
     check_comESP01();
     
-
 }end main loop
 
 
 
+check_modoFuncionamiento(){
 
+    switch (modo){
+        case PASEO:
+            //seteo la velocidad de los motores segun datos de los sensores
+        end case
+        case MANUAL:
+            //seteo la velocidad de los motores segun comandos
+            //valido sensores para no chocar
+        end case
+        case CALIBRA:
+            //se pone a girar para calibrar el magnetometro
+            //quizá debería resetear coordenadas o algo así
+        end case 
+        case NAVEGACION:
+            //calcula trayectoria a las coordenadas propuestas
+        end case
+    }end switch modo
+    
+}end check_modoFuncionamiento
