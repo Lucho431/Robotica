@@ -112,11 +112,13 @@ int16_t distC = 0; //distancia relativa del centro en ranuras cada 210 ms.
 
 
 //mpu9265//
+mpuData_t mpu9265;
+int32_t sum_magX, sum_magY; //para promediar
 float magX, magY;
-
 float magX_min = 1000, magX_max = -1000;
 float magY_min = 1000, magY_max = -1000;
 float magX_media = 1, magY_media = 1;
+float magX_range = 1, magY_range = 1;
 float direccionMag_rad_f32;
 float direccionMag_grad_f32;
 int16_t direccionMag_grad_i16;
@@ -128,8 +130,10 @@ int16_t direccionGiro_grad_i16;
 
 float coef_gyro = 0.0; //0.98;
 float coef_mag = 1.0; //0.02;
+float alfa_filtroCompl = 0.1;
 
 float direccion_f32;
+float last_direccion_f32;
 float direccion_rad;
 float direccion_grad;
 int16_t direccion_i16;
@@ -158,13 +162,12 @@ int16_t posY_dest;
 //sensores//
 uint8_t SI, SF, SD;
 uint8_t sensores_dist = 0;
-mpuData_t mpu9265;
 
 //ticks//
 uint8_t desbordeTIM7 = 0; //desborda cada 10 ms.
 uint8_t periodo_Encoder = 7;
 uint8_t periodo_SR04 = 0;
-uint8_t periodo_pos = 14; //offset para operar intercalado con el periodo encoder
+uint8_t periodo_pos = 7; //offset para operar en simultaneo con el periodo encoder
 uint8_t flag_checkUart = 0;
 
 //SR-04//
@@ -285,6 +288,7 @@ int main(void)
 
   //para pruebas (comentar cuando no se requiera):
   modoFuncionamiento = CALIBRA_MAG;
+//  modoFñuncionamiento = MANUAL;
 
   /* USER CODE END 2 */
 
@@ -316,13 +320,13 @@ int main(void)
 			  flag_encoders = 1;
 			  periodo_Encoder = 0;
 		  }
-		  if (periodo_SR04 > 21){
-			  TRIG_SR04;
-			  periodo_SR04 = 0;
-		  }
 		  if (periodo_pos > 21){
 			  posicionamiento();
 			  periodo_pos = 0;
+		  }
+		  if (periodo_SR04 > 21){
+			  TRIG_SR04;
+			  periodo_SR04 = 0;
 		  }
 
 		  //para la funcion orientando (comentar cuando no se requiera):
@@ -1127,7 +1131,7 @@ void encoders (void){
 	else
 		distR = -encoderR + encoderR_memPositivo - encoderR_memNegativo;
 
-	distC += (distL + distR) >> 1;
+	distC = (distL + distR) >> 1;
 
 	//acumula encoders
 //	acum_encoderL += encoderL + encoderL_memPositivo - encoderL_memNegativo;
@@ -1144,6 +1148,88 @@ void encoders (void){
 } //fin encoders()
 
 void posicionamiento (void){
+	//actualizo el angulo anterior
+	last_direccion_f32 = direccion_f32;
+
+	//calculo de angulo por magnetometro
+	sum_magX = 0;
+	sum_magY = 0;
+	for (uint8_t i = 0; i < 32; i++){
+		mpu9265_Read_Magnet(&mpu9265);
+		sum_magX += mpu9265.Magnet_X_RAW;
+		sum_magY += mpu9265.Magnet_Y_RAW;
+	} //fin for i
+	magX = (float) (sum_magX >> 5);
+	magY = (float) (sum_magY >> 5);
+
+//	mpu9265_Read_Magnet(&mpu9265);
+//	magX = (float) (mpu9265.Magnet_X_RAW); //media empirica +359.0
+//	magY = (float) (mpu9265.Magnet_Y_RAW); //media empirica -159.0
+
+	if (magX < magX_min) magX_min = magX;
+	if (magX > magX_max) magX_max = magX;
+	if (magY < magY_min) magY_min = magY;
+	if (magY > magY_max) magY_max = magY;
+	magX_media = (magX_min + magX_max) / 2.0;
+	magY_media = (magY_min + magY_max) / 2.0;
+	magX_range = (magX_max - magX_min) / 1.0;
+	magY_range = (magY_max - magY_min) / 1.0;
+
+	magX -= magX_media;
+	magY -= magY_media;
+	magX /= magX_range;
+	magY /= magY_range;
+
+	direccionMag_rad_f32 = atan2f(magY, magX); //radianes en float
+	direccionMag_grad_f32 = direccionMag_rad_f32 * 180.0 / M_PI; //grados en float
+
+	if (direccionMag_grad_f32 > 90.0){
+		if (last_direccion_f32 < 0.0){
+			last_direccion_f32 += 360.0;
+		}
+	}else if (direccionMag_grad_f32 < -90.0){
+		if (last_direccion_f32 > 0.0){
+			last_direccion_f32 -= 360.0;
+		}
+	} //fin if direccionMag_grad_f32...
+
+	//calculo de angulo por giroscopio
+	mpu9265_Read_Gyro(&mpu9265);
+	gyroZ = (float) (mpu9265.Gyro_Z_RAW / 131.0);
+	direccionGiro_grad_f32 += gyroZ * 0.21; //grados en float
+
+	if (direccionGiro_grad_f32 < -180.0){
+		direccionGiro_grad_f32 += 360.0;
+	}
+	if (direccionGiro_grad_f32 > 180.0){
+		direccionGiro_grad_f32 -= 360.0;
+	}
+
+	//filtro complementario magnetometro y giroscopio
+//	direccion_f32 = direccionMag_grad_f32 * alfa_filtroCompl + (last_direccion_f32 + gyroZ * 0.21) * (1 - alfa_filtroCompl);
+
+	//sin el filtro, solo mag
+	direccion_f32 = direccionMag_grad_f32;
+
+	//coordenadas de posicionamiento
+	direccion_rad = direccion_f32 * M_PI / 180.0; //radianes en float
+	direccion_i16 = direccion_f32; //grados en int16
+	posX_f32 += (float) (distC * 100.0 * cosf(direccion_rad)); //posicion X en float
+	posY_f32 += (float) (distC * 100.0 * sinf(direccion_rad)); //posicion Y en float
+	distC = 0;
+	posX_i16 = posX_f32; //posicion X en int16
+	posY_i16 = posY_f32; //posicion Y en int16
+
+//	posX_f32 += (float) (distC * cosf(direccionGiro_rad_f32)); //posicion X en float
+//	posY_f32 += (float) (distC * sinf(direccionGiro_rad_f32)); //posicion Y en float
+//	distC = 0;
+//	direccionGiro_grad_i16 = direccionGiro_grad_f32; //grados en int16
+//	posX_i16 = posX_f32; //posicion X en int16
+//	posY_i16 = posY_f32; //posicion Y en int16
+
+} //fin posicionamiento ()
+
+void OLD_posicionamiento (void){
 
 	//saco el angulo...
 
@@ -1163,7 +1249,7 @@ void posicionamiento (void){
 	magX -= magX_media;
 	magY -= magY_media;
 	magX /= magX_media;
-	magY /= magX_media;
+	magY /= magY_media;
 
 	direccionMag_rad_f32 = atan2f(magY, magX); //radianes en float
 
@@ -1231,7 +1317,8 @@ void posicionamiento (void){
 	posY_i16 = posY_f32; //posicion Y en int16
 */
 
-} //fin posicionamiento ()
+} //fin OLD_posicionamiento ()
+
 
 void test_respuesta (void){
 	switch(rxUart[0]){
@@ -1251,7 +1338,8 @@ void test_respuesta (void){
 
 	HAL_UART_Transmit(&huart7, txUart, 4, 20);
 	HAL_UART_Receive_IT(&huart7, rxUart, 4);
-}
+} //fin test_prueba ()
+
 
 void modo_funcionamiento (void){
 

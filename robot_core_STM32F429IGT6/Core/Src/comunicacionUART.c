@@ -137,12 +137,16 @@ void iniciaInstruccion (void){
 			tx[3] = posY_i16 >> 8;
 			tx[4] = posY_i16 & 0xFF;
 			if (direccion_i16 < 0){
-				aux_direccion = direccion_i16 + 360;
+//				aux_direccion = direccion_i16 + 360;
+				tx[5] = 1;
+				tx[6] = -direccion_i16;
 			}else{
-				aux_direccion = direccion_i16;
+//				aux_direccion = direccion_i16;
+				tx[5] = 0;
+				tx[6] = direccion_i16;
 			}
-			tx[5] = aux_direccion >>8;
-			tx[6] = aux_direccion & 0xFF;
+//			tx[5] = aux_direccion >>8;
+//			tx[6] = aux_direccion & 0xFF;
 			tx[7] = '\0';
 //			cmdEsperado = OK_;
 			cmdEsperado = NO_CMD;
