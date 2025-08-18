@@ -82,10 +82,10 @@ volatile uint16_t ticks_PuntoAPunto = 0xFFFF;
 uint8_t flag_dest = 0; //indica si hay un destino establecido.
 float anguloDest_rad_f32; //angulo a la coordenanda de destino desde la posicion actual.
 float anguloDest_grad_f32;
-int16_t anguloDest_grad_i16;
-int16_t deltaAng_dest;
-int16_t deltaX_dest;
-int16_t deltaY_dest;
+int32_t anguloDest_grad_i32;
+int32_t deltaAng_dest;
+float deltaX_dest;
+float deltaY_dest;
 
 //comunicacion//
 uint8_t rxUart[8];
@@ -962,21 +962,21 @@ void mov_puntoAPunto (void){
 			}
 		break;
 		case 1: //gira al destino
-			deltaX_dest = posX_dest - posX_i16;
-			deltaY_dest = posY_dest - posY_i16;
+			deltaX_dest = posX_dest - posX_f32; //posX_i16 cuando era entero;
+			deltaY_dest = posY_dest - posY_f32; //posY_i16 cuando era entero;
 			anguloDest_rad_f32 = atan2f(deltaY_dest, deltaX_dest);
 			anguloDest_grad_f32 = anguloDest_rad_f32 * 180.0 / M_PI; //grados en float
-			anguloDest_grad_i16 = anguloDest_grad_f32; //grados en int16
+			anguloDest_grad_i32 = anguloDest_grad_f32 * 1000; //milesimas de grados en int32
 
-			deltaAng_dest = anguloDest_grad_i16 - direccion_i16;
-			if (deltaAng_dest > 180) deltaAng_dest -= 360;
-			if (deltaAng_dest < -180) deltaAng_dest += 360;
+			deltaAng_dest = anguloDest_grad_i32 - direccion_i16 * 1000;
+			if (deltaAng_dest > 180000) deltaAng_dest -= 360000;
+			if (deltaAng_dest < -180000) deltaAng_dest += 360000;
 
-			if (deltaAng_dest > 17){
+			if (deltaAng_dest > 17000){
 				velL = -4;
 				velR = +4;
 				ticks_PuntoAPunto = 20;
-			}else if (deltaAng_dest < -17){
+			}else if (deltaAng_dest < -17000){
 				velL = +4;
 				velR = -4;
 				ticks_PuntoAPunto = 20;
@@ -992,10 +992,10 @@ void mov_puntoAPunto (void){
 
 		break;
 		case 2: //avanza al destino
-			deltaX_dest = posX_dest - posX_i16;
-			deltaY_dest = posY_dest - posY_i16;
+			deltaX_dest = posX_dest - posX_f32; //posX_i16 cuando era entero;
+			deltaY_dest = posY_dest - posY_f32; //posY_i16 cuando era entero;
 
-			if (  abs(deltaX_dest) < 2 && abs(deltaY_dest) < 2){
+			if (  abs(deltaX_dest) < 1 && abs(deltaY_dest) < 1){
 				estatusPuntoAPunto = 3;
 				velL = 0;
 				velR = 0;
@@ -1006,21 +1006,21 @@ void mov_puntoAPunto (void){
 
 			anguloDest_rad_f32 = atan2f(deltaY_dest, deltaX_dest);
 			anguloDest_grad_f32 = anguloDest_rad_f32 * 180.0 / M_PI; //grados en float
-			anguloDest_grad_i16 = anguloDest_grad_f32; //grados en int16
-			deltaAng_dest = anguloDest_grad_i16 - direccion_i16;
-			if (deltaAng_dest > 180) deltaAng_dest -= 360;
-			if (deltaAng_dest < -180) deltaAng_dest += 360;
+			anguloDest_grad_i32 = anguloDest_grad_f32 * 1000; //milesimas de grados en int32
+			deltaAng_dest = anguloDest_grad_i32 - direccion_i16 * 1000;
+			if (deltaAng_dest > 180000) deltaAng_dest -= 360000;
+			if (deltaAng_dest < -180000) deltaAng_dest += 360000;
 
-			if (deltaAng_dest > 17){
-				if (deltaAng_dest > 45){
+			if (deltaAng_dest > 17000){
+				if (deltaAng_dest > 45000){
 					velL = -4;
 					velR = +4;
 				}else{
 					velL = +4;
 					velR = +5;
 				}
-			}else if (deltaAng_dest < -17){
-				if (deltaAng_dest < -45){
+			}else if (deltaAng_dest < -17000){
+				if (deltaAng_dest < -45000){
 					velL = +4;
 					velR = -4;
 				}else{
@@ -1031,14 +1031,14 @@ void mov_puntoAPunto (void){
 
 		break;
 		case 3: // orienta en la coordenada angulo del destino
-			deltaAng_dest = direccion_dest - direccion_i16;
-			if (deltaAng_dest > 180) deltaAng_dest -= 360;
-			if (deltaAng_dest < -180) deltaAng_dest += 360;
+			deltaAng_dest = (direccion_dest - direccion_i16) * 1000;
+			if (deltaAng_dest > 180000) deltaAng_dest -= 360000;
+			if (deltaAng_dest < -180000) deltaAng_dest += 360000;
 
-			if (deltaAng_dest > 17){
+			if (deltaAng_dest > 17000){
 				velL = -4;
 				velR = +4;
-			}else if (deltaAng_dest < -17){
+			}else if (deltaAng_dest < -17000){
 				velL = +4;
 				velR = -4;
 			}else{
@@ -1174,11 +1174,10 @@ void posicionamiento (void){
 	magY_media = (magY_min + magY_max) / 2.0;
 	magX_range = (magX_max - magX_min) / 1.0;
 	magY_range = (magY_max - magY_min) / 1.0;
-
 	magX -= magX_media;
 	magY -= magY_media;
-	magX /= magX_range;
-	magY /= magY_range;
+	if (magX_range != 0.0) magX /= magX_range;
+	if (magY_range != 0.0) magY /= magY_range;
 
 	direccionMag_rad_f32 = atan2f(magY, magX); //radianes en float
 	direccionMag_grad_f32 = direccionMag_rad_f32 * 180.0 / M_PI; //grados en float
@@ -1214,8 +1213,8 @@ void posicionamiento (void){
 	//coordenadas de posicionamiento
 	direccion_rad = direccion_f32 * M_PI / 180.0; //radianes en float
 	direccion_i16 = direccion_f32; //grados en int16
-	posX_f32 += (float) (distC * 100.0 * cosf(direccion_rad)); //posicion X en float
-	posY_f32 += (float) (distC * 100.0 * sinf(direccion_rad)); //posicion Y en float
+	posX_f32 += (float) (distC * 0.07855 * cosf(direccion_rad)); //posicion X en float
+	posY_f32 += (float) (distC * 0.07855 * sinf(direccion_rad)); //posicion Y en float
 	distC = 0;
 	posX_i16 = posX_f32; //posicion X en int16
 	posY_i16 = posY_f32; //posicion Y en int16

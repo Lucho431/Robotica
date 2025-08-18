@@ -132,10 +132,24 @@ void iniciaInstruccion (void){
 		break;
 		case POSICION:
 			tx[0] = POSICION;
-			tx[1] = posX_i16 >> 8;
-			tx[2] = posX_i16 & 0xFF;
-			tx[3] = posY_i16 >> 8;
-			tx[4] = posY_i16 & 0xFF;
+			if (posX_i16 < 0){
+				tx[1] = 1;
+				tx[2] = -posX_i16;
+			}else{
+				tx[1] = 0;
+				tx[2] = posX_i16;
+			}
+			if (posY_i16 < 0){
+				tx[3] = 1;
+				tx[4] = -posY_i16;
+			}else{
+				tx[3] = 0;
+				tx[4] = posY_i16;
+			}
+//			tx[1] = posX_i16 >> 8;
+//			tx[2] = posX_i16 & 0xFF;
+//			tx[3] = posY_i16 >> 8;
+//			tx[4] = posY_i16 & 0xFF;
 			if (direccion_i16 < 0){
 //				aux_direccion = direccion_i16 + 360;
 				tx[5] = 1;
