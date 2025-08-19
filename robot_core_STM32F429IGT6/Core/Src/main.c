@@ -128,9 +128,26 @@ float direccionGiro_rad_f32;
 float direccionGiro_grad_f32;
 int16_t direccionGiro_grad_i16;
 
+//filtro complementario//
 float coef_gyro = 0.0; //0.98;
 float coef_mag = 1.0; //0.02;
 float alfa_filtroCompl = 0.1;
+
+//filtro IIR//
+//beta = 1 - exp(-Ts/tau) ; Ts = 210 ms
+//float betaIIR = 0.508; // con tau = 0.3
+//float betaIIR = 0.426; // con tau = 0.4
+//float betaIIR = 0.343; // con tau = 0.5
+//float betaIIR = 0.295; // con tau = 0.6
+//float betaIIR = 0.259; // con tau = 0.7
+//float betaIIR = 0.232; // con tau = 0.8
+//float betaIIR = 0.210; // con tau = 0.9
+float betaIIR = 0.189; // con tau = 1.0
+uint8_t flag_iniciaIIR = 1;
+float magX_iirX0;
+float magX_iirY1;
+float magY_iirX0;
+float magY_iirY1;
 
 float direccion_f32;
 float last_direccion_f32;
@@ -1152,32 +1169,57 @@ void posicionamiento (void){
 	last_direccion_f32 = direccion_f32;
 
 	//calculo de angulo por magnetometro
-	sum_magX = 0;
-	sum_magY = 0;
-	for (uint8_t i = 0; i < 32; i++){
-		mpu9265_Read_Magnet(&mpu9265);
-		sum_magX += mpu9265.Magnet_X_RAW;
-		sum_magY += mpu9265.Magnet_Y_RAW;
-	} //fin for i
-	magX = (float) (sum_magX >> 5);
-	magY = (float) (sum_magY >> 5);
-
+//	sum_magX = 0;
+//	sum_magY = 0;
+//	for (uint8_t i = 0; i < 32; i++){
+//		mpu9265_Read_Magnet(&mpu9265);
+//		sum_magX += mpu9265.Magnet_X_RAW;
+//		sum_magY += mpu9265.Magnet_Y_RAW;
+//	} //fin for i
+//	magX = (float) (sum_magX >> 5);
+//	magY = (float) (sum_magY >> 5);
+//
 //	mpu9265_Read_Magnet(&mpu9265);
 //	magX = (float) (mpu9265.Magnet_X_RAW); //media empirica +359.0
 //	magY = (float) (mpu9265.Magnet_Y_RAW); //media empirica -159.0
+//
+//	if (magX < magX_min) magX_min = magX;
+//	if (magX > magX_max) magX_max = magX;
+//	if (magY < magY_min) magY_min = magY;
+//	if (magY > magY_max) magY_max = magY;
+//	magX_media = (magX_min + magX_max) / 2.0;
+//	magY_media = (magY_min + magY_max) / 2.0;
+//	magX_range = (magX_max - magX_min) / 1.0;
+//	magY_range = (magY_max - magY_min) / 1.0;
+//	magX -= magX_media;
+//	magY -= magY_media;
+//	if (magX_range != 0.0) magX /= magX_range;
+//	if (magY_range != 0.0) magY /= magY_range;
 
-	if (magX < magX_min) magX_min = magX;
-	if (magX > magX_max) magX_max = magX;
-	if (magY < magY_min) magY_min = magY;
-	if (magY > magY_max) magY_max = magY;
+	mpu9265_Read_Magnet(&mpu9265);
+	magX_iirX0 = (float) (mpu9265.Magnet_X_RAW); //media empirica +359.0
+	magY_iirX0 = (float) (mpu9265.Magnet_Y_RAW); //media empirica -159.0
+
+	if (magX_iirX0 < magX_min) magX_min = magX_iirX0;
+	if (magX_iirX0 > magX_max) magX_max = magX_iirX0;
+	if (magY_iirX0 < magY_min) magY_min = magY_iirX0;
+	if (magY_iirX0 > magY_max) magY_max = magY_iirX0;
 	magX_media = (magX_min + magX_max) / 2.0;
 	magY_media = (magY_min + magY_max) / 2.0;
 	magX_range = (magX_max - magX_min) / 1.0;
 	magY_range = (magY_max - magY_min) / 1.0;
-	magX -= magX_media;
-	magY -= magY_media;
-	if (magX_range != 0.0) magX /= magX_range;
-	if (magY_range != 0.0) magY /= magY_range;
+	magX_iirX0 -= magX_media;
+	magY_iirX0 -= magY_media;
+	if (magX_range != 0.0) magX_iirX0 /= magX_range;
+	if (magY_range != 0.0) magY_iirX0 /= magY_range;
+
+	if (!flag_iniciaIIR){
+		magX = magX_iirY1 + betaIIR * (magX_iirX0 - magX_iirY1);
+		magY = magY_iirY1 + betaIIR * (magY_iirX0 - magY_iirY1);
+	}else{
+		magX = magX_iirX0;
+		magY = magY_iirX0;
+	}
 
 	direccionMag_rad_f32 = atan2f(magY, magX); //radianes en float
 	direccionMag_grad_f32 = direccionMag_rad_f32 * 180.0 / M_PI; //grados en float
