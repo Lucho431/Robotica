@@ -72,9 +72,9 @@ typedef enum{
 
 /* USER CODE BEGIN PV */
 
-//variables de orientacion//
-volatile uint8_t estatusOrientando = 0;
-volatile uint16_t ticks_orientando = 0xFFFF;
+//variables de calibracion del magnetometro//
+volatile uint8_t estatus_calibraMag = 0;
+volatile uint16_t periodo_calibraMag = 0xFFFF;
 
 //variables de mov_puntoAPunto//
 volatile uint8_t estatusPuntoAPunto = 0;
@@ -112,6 +112,8 @@ int16_t distC = 0; //distancia relativa del centro en ranuras cada 210 ms.
 
 
 //mpu9265//
+
+uint8_t flag_muestreoIMU = 0;
 mpuData_t mpu9265;
 int32_t sum_magX, sum_magY; //para promediar
 float magX, magY;
@@ -224,12 +226,16 @@ void SystemClock_Config(void);
 void SR_04 (void);
 void sensores (void);
 void movimientoLibre (void);
+void movimientoRC (void);
+void calibraMag (void);
+void mov_puntoAPunto (void);
 void modo_funcionamiento (void);
 void velocidades (int8_t, int8_t);
 void encoders (void);
 void posicionamiento (void);
 void PWM_motores (void);
 void aceleracion (void);
+
 
 /* USER CODE END PFP */
 
@@ -337,6 +343,8 @@ int main(void)
 			  flag_encoders = 1;
 			  periodo_Encoder = 0;
 		  }
+
+
 		  if (periodo_pos > 21){
 			  posicionamiento();
 			  periodo_pos = 0;
@@ -347,7 +355,7 @@ int main(void)
 		  }
 
 		  //para la funcion orientando (comentar cuando no se requiera):
-		  if (ticks_orientando != 0) ticks_orientando--;
+		  if (periodo_calibraMag != 0) periodo_calibraMag--;
 		  if (ticks_PuntoAPunto != 0) ticks_PuntoAPunto--;
 
 		  //valida que la uart no tenga el buffer a medio llenar (trama desfasada)
@@ -917,27 +925,34 @@ void movimientoRC (void){
 
 } //fin movimientoRC()
 
-void orientando (void){
+void calibraMag (void){
 
-	switch (estatusOrientando) {
+	//checkeo del estatud de calibración
+	switch (estatus_calibraMag) {
 		case 0:
+			magX_min = 1000; magX_max = -1000;
+			magY_min = 1000; magY_max = -1000;
+			magX_media = 1; magY_media = 1;
+			magX_range = 1; magY_range = 1;
+			acum_encoderL = 0;
+			acum_encoderR = 0;
 			velL = -4;
 			velR = +4;
 			giroIzq_cant = 170;
-			estatusOrientando = 1;
+			estatus_calibraMag = 1;
 		break;
 		case 1:
 			if (giroIzq_cant < ((acum_encoderL + acum_encoderR) >> 1) ){
 				velL = 0;
 				velR = 0;
 				giroIzq_cant = 0;
-				estatusOrientando = 2;
-				ticks_orientando = 200;
+				estatus_calibraMag = 2;
+				periodo_calibraMag = 200;
 			}
 		break;
 		case 2:
-			if (!ticks_orientando){
-				estatusOrientando = 3;
+			if (!periodo_calibraMag){
+				estatus_calibraMag = 3;
 			}
 		break;
 		case 3:
@@ -950,14 +965,14 @@ void orientando (void){
 			}else{
 				velL = 0;
 				velR = 0;
-				estatusOrientando = 4;
+				estatus_calibraMag = 4;
 			}
 
 		break;
 		case 4:
 			direccionGiro_rad_f32 = direccionMag_rad_f32;
 			modoFuncionamiento = MANUAL;
-			estatusOrientando = 0;
+			estatus_calibraMag = 0;
 			sprintf((char*)txUart, "modMAN");
 			send_info(txUart);
 		break;
@@ -965,10 +980,14 @@ void orientando (void){
 		break;
 	}
 
+
+
 } //fin orientando ()
 
 
 void mov_puntoAPunto (void){
+
+	if (!flag_dest) estatusPuntoAPunto = 0;
 
 	switch (estatusPuntoAPunto) {
 		case 0: //espera destino
@@ -1012,7 +1031,7 @@ void mov_puntoAPunto (void){
 			deltaX_dest = posX_dest - posX_f32; //posX_i16 cuando era entero;
 			deltaY_dest = posY_dest - posY_f32; //posY_i16 cuando era entero;
 
-			if (  abs(deltaX_dest) < 1 && abs(deltaY_dest) < 1){
+			if (  abs(deltaX_dest) < 1.0 && abs(deltaY_dest) < 1.0){
 				estatusPuntoAPunto = 3;
 				velL = 0;
 				velR = 0;
@@ -1044,7 +1063,11 @@ void mov_puntoAPunto (void){
 					velL = +5;
 					velR = +4;
 				}
+			}else{
+				velL = +5;
+				velR = +4;
 			}
+
 
 		break;
 		case 3: // orienta en la coordenada angulo del destino
@@ -1392,7 +1415,8 @@ void modo_funcionamiento (void){
 			movimientoRC();
 		break;
 		case CALIBRA_MAG:
-			orientando();
+			calibraMag();
+		break;
 		case PUNTO_A_PUNTO:
 			mov_puntoAPunto();
 		default:

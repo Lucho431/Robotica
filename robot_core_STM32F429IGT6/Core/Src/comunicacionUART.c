@@ -11,6 +11,7 @@
 //////variables externas////////
 
 extern T_MODO modoFuncionamiento;
+extern uint8_t estatus_calibraMag;
 extern uint8_t esp01Presente;
 extern uint8_t flag_encoders;
 
@@ -111,6 +112,7 @@ void iniciaInstruccion (void){
 					break;
 				case CALIBRA_MAG:
 					modoFuncionamiento = CALIBRA_MAG;
+					estatus_calibraMag = 0;
 					flag_dest = 0;
 					tx[0] = OK_;
 					tx[7] = '\0';
@@ -174,10 +176,10 @@ void iniciaInstruccion (void){
 				break;
 			}
 
-			posX_dest = (p_rx[2] + (p_rx[1] << 8));
-			posY_dest = (p_rx[4] + (p_rx[3] << 8));
-			direccion_dest = (p_rx[6] + (p_rx[5] << 8));
 			if (modoFuncionamiento == PUNTO_A_PUNTO){
+				posX_dest = (p_rx[2] + (p_rx[1] << 8));
+				posY_dest = (p_rx[4] + (p_rx[3] << 8));
+				direccion_dest = (p_rx[6] + (p_rx[5] << 8));
 				flag_dest = 1;
 			}
 
@@ -207,10 +209,10 @@ void iniciaInstruccion (void){
 				break;
 			}
 
-			posX_dest = posX_home;
-			posY_dest = posY_home;
-			direccion_dest = direccion_home;
 			if (modoFuncionamiento == PUNTO_A_PUNTO){
+				posX_dest = posX_home;
+				posY_dest = posY_home;
+				direccion_dest = direccion_home;
 				flag_dest = 1;
 			}
 

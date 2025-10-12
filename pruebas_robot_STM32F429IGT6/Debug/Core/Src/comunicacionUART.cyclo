@@ -1,0 +1,4 @@
+comunicacionUART.c:36:6:init_controlRxTx	1
+comunicacionUART.c:41:6:controlRxTxUART	3
+comunicacionUART.c:64:6:iniciaInstruccion	13
+comunicacionUART.c:188:6:continuaInstruccion	12

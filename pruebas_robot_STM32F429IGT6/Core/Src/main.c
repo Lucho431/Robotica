@@ -52,8 +52,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint16_t set_pwm_L = 50;
-uint16_t set_pwm_R = 50;
+uint16_t set_pwm_L = 70;
+uint16_t set_pwm_R = 70;
 
 uint16_t cuenta_pulsosL = 0;
 uint16_t cuenta_pulsosR = 0;
@@ -81,6 +81,9 @@ uint8_t pos_ang = 0;
 
 T_MODO modoFuncionamiento;
 uint8_t flag_encoders;
+uint8_t periodo_Encoder = 7;
+int16_t encoderL;
+int16_t encoderR;
 
 /* USER CODE END PV */
 
@@ -163,13 +166,33 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  
-//	  TIM4->CCR1 = set_pwm_L;
-//	  TIM4->CCR2 = set_pwm_R;
-	  
+//		if (TIM4->CCR1 < 62) TIM4->CCR1 = 62;
+//		if (TIM4->CCR1 > 82) TIM4->CCR1 = 82;
+//
+//		TIM4->CCR2 += velR - encoderR;
+//		if (TIM4->CCR2 < 62) TIM4->CCR2 = 62;
+//		if (TIM4->CCR2 > 82) TIM4->CCR2 = 82;
+
+	  TIM4->CCR1 = set_pwm_L;
+	  TIM4->CCR2 = set_pwm_R;
 	  
 
+
+
+
 	  if (desbordes != 0){
+
+
+		  if (periodo_Encoder > 21){ // en 10 * ms
+			  encoderL = __HAL_TIM_GET_COUNTER(&htim3);
+			  __HAL_TIM_SET_COUNTER(&htim3, 0);
+			  encoderR = __HAL_TIM_GET_COUNTER(&htim2);
+			  __HAL_TIM_SET_COUNTER(&htim2, 0);
+			  periodo_Encoder = 0;
+		  }else{
+			  periodo_Encoder++;
+		  }
+
 
 		  deltaT = __HAL_TIM_GET_COUNTER(&htim7);
 
