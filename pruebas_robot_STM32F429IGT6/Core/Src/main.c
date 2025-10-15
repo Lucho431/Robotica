@@ -81,7 +81,7 @@ uint8_t pos_ang = 0;
 
 T_MODO modoFuncionamiento;
 uint8_t flag_encoders;
-uint8_t periodo_Encoder = 7;
+uint8_t periodo_muestrasOdometria = 7;
 int16_t encoderL;
 int16_t encoderR;
 
@@ -183,14 +183,14 @@ int main(void)
 	  if (desbordes != 0){
 
 
-		  if (periodo_Encoder > 21){ // en 10 * ms
+		  if (periodo_muestrasOdometria > 21){ // en 10 * ms
 			  encoderL = __HAL_TIM_GET_COUNTER(&htim3);
 			  __HAL_TIM_SET_COUNTER(&htim3, 0);
 			  encoderR = __HAL_TIM_GET_COUNTER(&htim2);
 			  __HAL_TIM_SET_COUNTER(&htim2, 0);
-			  periodo_Encoder = 0;
+			  periodo_muestrasOdometria = 0;
 		  }else{
-			  periodo_Encoder++;
+			  periodo_muestrasOdometria++;
 		  }
 
 

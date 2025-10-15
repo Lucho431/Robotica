@@ -18,6 +18,7 @@
         "nl": false,
         "rap": true,
         "rh": 0,
+        "inputs": 0,
         "x": 190,
         "y": 100,
         "wires": [
@@ -184,6 +185,7 @@
         "tooltip": "",
         "color": "",
         "bgcolor": "",
+        "className": "",
         "icon": "",
         "payload": "[5,1,0,0,0,0,0,0]",
         "payloadType": "bin",
@@ -238,8 +240,8 @@
         "label": "control actual:",
         "format": "{{msg.payload}}",
         "layout": "row-spread",
-        "x": 740,
-        "y": 840,
+        "x": 820,
+        "y": 780,
         "wires": []
     },
     {
@@ -270,7 +272,8 @@
         "nl": false,
         "rap": true,
         "rh": 0,
-        "x": 210,
+        "inputs": 0,
+        "x": 230,
         "y": 40,
         "wires": [
             [
@@ -323,6 +326,7 @@
         "nl": false,
         "rap": true,
         "rh": 0,
+        "inputs": 0,
         "x": 170,
         "y": 160,
         "wires": [
@@ -383,8 +387,8 @@
         "topic": "",
         "payload": "d_giro",
         "payloadType": "str",
-        "x": 280,
-        "y": 420,
+        "x": 420,
+        "y": 1060,
         "wires": [
             []
         ]
@@ -403,6 +407,7 @@
         "tooltip": "",
         "color": "",
         "bgcolor": "",
+        "className": "",
         "icon": "",
         "payload": "[24,0,0,0,0,0,0,0]",
         "payloadType": "bin",
@@ -430,6 +435,7 @@
         "tooltip": "",
         "color": "",
         "bgcolor": "",
+        "className": "",
         "icon": "",
         "payload": "[21,0,0,0,0,0,0,0]",
         "payloadType": "bin",
@@ -450,12 +456,13 @@
         "name": "MODO, MANUAL",
         "func": "msg.payload = \"manual\";\n\nreturn msg;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
         "x": 510,
-        "y": 800,
+        "y": 700,
         "wires": [
             [
                 "dff7ecee59e52cf7"
@@ -498,17 +505,18 @@
         "order": 3,
         "width": 0,
         "height": 0,
-        "passthru": false,
+        "passthru": true,
         "label": "posicion",
         "tooltip": "",
         "color": "",
         "bgcolor": "",
+        "className": "",
         "icon": "",
         "payload": "[10,0,0,0,0,0,0,0]",
         "payloadType": "bin",
         "topic": "topic",
         "topicType": "msg",
-        "x": 100,
+        "x": 200,
         "y": 980,
         "wires": [
             [
@@ -532,9 +540,10 @@
         "topic": "X",
         "topicType": "str",
         "format": "{{value}}",
-        "min": 0,
+        "min": "-10",
         "max": 10,
         "step": 1,
+        "className": "",
         "x": 100,
         "y": 1180,
         "wires": [
@@ -560,9 +569,10 @@
         "topic": "Y",
         "topicType": "str",
         "format": "{{value}}",
-        "min": 0,
+        "min": "-10",
         "max": 10,
         "step": 1,
+        "className": "",
         "x": 100,
         "y": 1240,
         "wires": [
@@ -578,7 +588,7 @@
         "z": "cbc36fa5a4935551",
         "name": "",
         "group": "2f56778897a4c7c9",
-        "order": 4,
+        "order": 3,
         "width": 0,
         "height": 0,
         "passthru": false,
@@ -604,7 +614,7 @@
         "type": "ui_text",
         "z": "cbc36fa5a4935551",
         "group": "2f56778897a4c7c9",
-        "order": 5,
+        "order": 4,
         "width": 0,
         "height": 0,
         "name": "",
@@ -719,6 +729,7 @@
         "tooltip": "",
         "color": "",
         "bgcolor": "",
+        "className": "",
         "icon": "",
         "payload": "[11,0,0,0,0,0,0,0]",
         "payloadType": "bin",
@@ -746,6 +757,7 @@
         "tooltip": "",
         "color": "",
         "bgcolor": "",
+        "className": "",
         "icon": "",
         "payload": "[13,0,0,0,0,0,0,0]",
         "payloadType": "bin",
@@ -756,7 +768,7 @@
         "wires": [
             [
                 "28963ad61ae1da61",
-                "f58e27b80e1faf35"
+                "0c4dd171470cd88c"
             ]
         ]
     },
@@ -780,7 +792,7 @@
         "topic": "S",
         "topicType": "str",
         "x": 130,
-        "y": 1680,
+        "y": 1720,
         "wires": [
             [
                 "d2b5189c0cf2258b",
@@ -799,8 +811,8 @@
         "sendError": false,
         "encoding": "none",
         "allProps": false,
-        "x": 450,
-        "y": 1560,
+        "x": 460,
+        "y": 1540,
         "wires": [
             [
                 "8b025e12b101c67c"
@@ -838,7 +850,7 @@
         "to": "",
         "reg": false,
         "x": 660,
-        "y": 1560,
+        "y": 1540,
         "wires": [
             [
                 "0c4dd171470cd88c"
@@ -851,13 +863,14 @@
         "z": "cbc36fa5a4935551",
         "name": "",
         "filename": "coord",
+        "filenameType": "str",
         "format": "utf8",
         "chunk": false,
         "sendError": false,
         "encoding": "none",
         "allProps": false,
         "x": 450,
-        "y": 1620,
+        "y": 1600,
         "wires": [
             [
                 "22dc0bf817b9f74e"
@@ -895,7 +908,7 @@
         "to": "",
         "reg": false,
         "x": 680,
-        "y": 1620,
+        "y": 1600,
         "wires": [
             []
         ]
@@ -1001,8 +1014,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 540,
-        "y": 900,
+        "x": 500,
+        "y": 740,
         "wires": [
             [
                 "dff7ecee59e52cf7"
@@ -1032,7 +1045,8 @@
         "y": 780,
         "wires": [
             [
-                "be3ac9fc90dd2a4a"
+                "be3ac9fc90dd2a4a",
+                "a86505135493859b"
             ]
         ]
     },
@@ -1048,6 +1062,7 @@
         "key": "topic",
         "joiner": "",
         "joinerType": "str",
+        "useparts": true,
         "accumulate": false,
         "timeout": "1",
         "count": "",
@@ -1102,7 +1117,8 @@
         "y": 820,
         "wires": [
             [
-                "be3ac9fc90dd2a4a"
+                "be3ac9fc90dd2a4a",
+                "a439511155c0ce59"
             ]
         ]
     },
@@ -1130,8 +1146,9 @@
         "type": "function",
         "z": "cbc36fa5a4935551",
         "name": "setupCmdCoord",
-        "func": "var cmd;\nvar buffer = Buffer.alloc(8); // Crea un buffer de 8 bytes\n\n// Actualiza las variables en el flujo según el tema del mensaje\nswitch (msg.topic) {\n    case \"G\":\n        buffer.writeUInt8(13, 0); // Escribe 13 en el primer byte\n        break;\n    case \"S\":\n        buffer.writeUInt8(14, 0); // Escribe 14 en el primer byte\n        break;\n    case \"D\":\n        buffer.writeUInt8(11, 0); // Escribe 11 en el primer byte\n        break;\n    default:\n        break;\n}\n\n\n\n// Obtiene los valores actuales de \"X\", \"Y\" y \"A\" desde el flujo\nvar X = flow.get(\"X\");\nvar Y = flow.get(\"Y\");\nvar A = flow.get(\"A\");\n\nbuffer.writeUInt16BE(X, 1);       // Escribe X como un uint16 Big Endian en los byte 1 y 2\nbuffer.writeUInt16BE(Y, 3);       // Escribe Y como un uint16 Big Endian en los byte 3 y 4\nbuffer.writeUInt16BE(A, 5);       // Escribe A como un uint16 Big Endian en los byte 5 y 6\n\n// Asigna el buffer al payload del mensaje\nmsg.payload = buffer;\n\n// Devuelve el mensaje modificado\nreturn msg;\n",
+        "func": "var cmd;\nvar buffer = Buffer.alloc(8); // Crea un buffer de 8 bytes\n\n// Actualiza las variables en el flujo según el tema del mensaje\nswitch (msg.topic) {\n    case \"G\":\n        buffer.writeUInt8(13, 0); // Escribe 13 en el primer byte\n        break;\n    case \"S\":\n        buffer.writeUInt8(14, 0); // Escribe 14 en el primer byte\n        break;\n    case \"D\":\n        buffer.writeUInt8(11, 0); // Escribe 11 en el primer byte\n        break;\n    default:\n        break;\n}\n\n\n\n// Obtiene los valores actuales de \"X\", \"Y\" y \"A\" desde el flujo\nvar X = flow.get(\"X\");\nvar Y = flow.get(\"Y\");\nvar A = flow.get(\"A\");\n\nbuffer.writeInt16BE(X, 1);       // Escribe X como un uint16 Big Endian en los byte 1 y 2\nbuffer.writeInt16BE(Y, 3);       // Escribe Y como un uint16 Big Endian en los byte 3 y 4\nbuffer.writeInt16BE(A, 5);       // Escribe A como un uint16 Big Endian en los byte 5 y 6\n\n// Asigna el buffer al payload del mensaje\nmsg.payload = buffer;\n\n// Devuelve el mensaje modificado\nreturn msg;\n",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
@@ -1164,8 +1181,8 @@
         "onceDelay": 0.1,
         "topic": "",
         "payloadType": "date",
-        "x": 130,
-        "y": 1440,
+        "x": 110,
+        "y": 1480,
         "wires": [
             [
                 "8f2be3d602949ff9"
@@ -1179,7 +1196,8 @@
         "name": "setVarCoord",
         "func": "var coord;\n\n// Verifica si la variable de flujo \"X\" existe; si no existe, inicialízala a 0\nif (!flow.get(\"X\")) {\n    flow.set(\"X\", 0);\n}\n\n// Verifica si la variable de flujo \"Y\" existe; si no existe, inicialízala a 0\nif (!flow.get(\"Y\")) {\n    flow.set(\"Y\", 0);\n}\n\n// Verifica si la variable de flujo \"A\" existe; si no existe, inicialízala a 0\nif (!flow.get(\"A\")) {\n    flow.set(\"A\", 0);\n}\n\n// Selecciona el valor del mensaje según el tema (topic) del mensaje\nswitch (msg.topic) {\n    case \"X\":\n        flow.set(\"X\", msg.payload); // Establece el valor de \"X\" en el flujo según el payload del mensaje\n        break;\n    case \"Y\":\n        flow.set(\"Y\", msg.payload); // Establece el valor de \"Y\" en el flujo según el payload del mensaje\n        break;\n    case \"A\":\n        flow.set(\"A\", msg.payload); // Establece el valor de \"A\" en el flujo según el payload del mensaje\n        break;\n    default:\n        break;\n}\n\n// Obtiene los valores actuales de \"X\", \"Y\" y \"A\" desde el flujo\nX = flow.get(\"X\");\nY = flow.get(\"Y\");\nA = flow.get(\"A\");\n\n// Construye el payload del mensaje como una única variable de 24 bits, combinando X, Y y A\nmsg.payload = (X << 16) + (Y << 8) + (A << 0);\n\n// Devuelve el mensaje modificado\nreturn msg;\n",
         "outputs": 1,
-        "noerr": 0,
+        "timeout": "",
+        "noerr": 6,
         "initialize": "",
         "finalize": "",
         "libs": [],
@@ -1199,7 +1217,7 @@
         "label": "angulo",
         "tooltip": "",
         "group": "2f56778897a4c7c9",
-        "order": 5,
+        "order": 6,
         "width": 0,
         "height": 0,
         "passthru": true,
@@ -1209,6 +1227,7 @@
         "min": 0,
         "max": "359",
         "step": 1,
+        "className": "",
         "x": 90,
         "y": 1300,
         "wires": [
@@ -1236,16 +1255,159 @@
         ]
     },
     {
+        "id": "8f3dc640b71c8065",
+        "type": "inject",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "1",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 1100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a86505135493859b",
+        "type": "function",
+        "z": "cbc36fa5a4935551",
+        "name": "MODO, CALIBRA",
+        "func": "msg.payload = \"calibrando\";\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 780,
+        "wires": [
+            [
+                "dff7ecee59e52cf7"
+            ]
+        ]
+    },
+    {
+        "id": "a439511155c0ce59",
+        "type": "function",
+        "z": "cbc36fa5a4935551",
+        "name": "MODO, P A P",
+        "func": "msg.payload = \"punto a punto\";\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 820,
+        "wires": [
+            [
+                "dff7ecee59e52cf7"
+            ]
+        ]
+    },
+    {
+        "id": "87dd1b6451708231",
+        "type": "ui_button",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "group": "b5808822a72da289",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "RESET_HOME",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "[14,0,0,0,0,0,0,0]",
+        "payloadType": "bin",
+        "topic": "S",
+        "topicType": "str",
+        "x": 140,
+        "y": 1660,
+        "wires": [
+            [
+                "0c4dd171470cd88c"
+            ]
+        ]
+    },
+    {
+        "id": "f30a13414fdc2f1d",
+        "type": "ui_text_input",
+        "z": "cbc36fa5a4935551",
+        "name": "",
+        "label": "Ingrese ángulo",
+        "tooltip": "",
+        "group": "2f56778897a4c7c9",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "topic",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "msg",
+        "x": 120,
+        "y": 1420,
+        "wires": [
+            [
+                "3a507daaeb07a970"
+            ]
+        ]
+    },
+    {
+        "id": "3a507daaeb07a970",
+        "type": "function",
+        "z": "cbc36fa5a4935551",
+        "name": "cmbRangoGrados",
+        "func": "// Convierte el payload string a número\nlet val = Number(msg.payload);\n\n// Asegura que sea un número válido\nif (isNaN(val)) {\n    node.warn(\"Payload no numérico: \" + msg.payload);\n    return null;\n}\n\n// Normaliza al rango [0, 359]\nval = ((val % 360) + 360) % 360;\n\nmsg.payload = val;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 130,
+        "y": 1360,
+        "wires": [
+            [
+                "5bf3d0491ea2534a"
+            ]
+        ]
+    },
+    {
         "id": "48f075c996337301",
         "type": "mqtt-broker",
         "name": "",
-        "broker": "localhost",
+        "broker": "dkr_emqx",
         "port": "1883",
         "clientid": "",
+        "autoConnect": true,
         "usetls": false,
         "protocolVersion": "4",
         "keepalive": "60",
         "cleansession": true,
+        "autoUnsubscribe": true,
         "birthTopic": "",
         "birthQos": "0",
         "birthPayload": "",
@@ -1258,6 +1420,7 @@
         "willQos": "0",
         "willPayload": "",
         "willMsg": {},
+        "userProps": "",
         "sessionExpiry": ""
     },
     {

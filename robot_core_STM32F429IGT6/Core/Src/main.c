@@ -119,7 +119,7 @@ int32_t sum_magX, sum_magY; //para promediar
 float magX, magY;
 float magX_min = 1000, magX_max = -1000;
 float magY_min = 1000, magY_max = -1000;
-float magX_media = 1, magY_media = 1;
+float magX_media = 0, magY_media = 0;
 float magX_range = 1, magY_range = 1;
 float direccionMag_rad_f32;
 float direccionMag_grad_f32;
@@ -146,6 +146,8 @@ float alfa_filtroCompl = 0.1;
 //float betaIIR = 0.210; // con tau = 0.9
 float betaIIR = 0.189; // con tau = 1.0
 uint8_t flag_iniciaIIR = 1;
+float raw_magX;
+float raw_magY;
 float magX_iirX0;
 float magX_iirY1;
 float magY_iirX0;
@@ -184,7 +186,7 @@ uint8_t sensores_dist = 0;
 
 //ticks//
 uint8_t desbordeTIM7 = 0; //desborda cada 10 ms.
-uint8_t periodo_Encoder = 7;
+uint8_t periodo_muestrasOdometria = 7;
 uint8_t periodo_SR04 = 0;
 uint8_t periodo_pos = 7; //offset para operar en simultaneo con el periodo encoder
 uint8_t flag_checkUart = 0;
@@ -192,12 +194,11 @@ uint8_t flag_checkUart = 0;
 //SR-04//
 uint32_t ic1 = 0;
 uint32_t ic2 = 0;
-uint8_t flancoEco = 0; //cuando cuenta 2, detectó ambos flancos. Valores mayores, son errores.
+uint8_t flancoEco_SR04 = 0; //cuando cuenta 2, detectó ambos flancos. Valores mayores, son errores.
 int32_t cuentaPulsos = 0;
 uint16_t distanciaSR04 = 0; //distancia en cm.
 
 //encoders//
-uint8_t flag_encoders = 0;
 int16_t encoderL;
 int16_t encoderR;
 int16_t encoderL_delta;
@@ -210,10 +211,13 @@ int16_t encoderL_memNegativo = 0;
 int16_t encoderR_memNegativo = 0;
 
 //velocidades//
-int8_t velL = 5; //en ranuras cada 210 ms
-int8_t velR = 5; //en ranuras cada 210 ms
+int8_t velL = 0; //5; //en ranuras cada 210 ms
+int8_t velR = 0; //5; //en ranuras cada 210 ms
 uint8_t velLFinal = 5; //en ranuras cada 210 ms
 uint8_t velRFinal = 5; //en ranuras cada 210 ms
+
+//muestreo//
+uint8_t flag_nuevasMuestras = 0;
 
 
 
@@ -223,7 +227,6 @@ uint8_t velRFinal = 5; //en ranuras cada 210 ms
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-void SR_04 (void);
 void sensores (void);
 void movimientoLibre (void);
 void movimientoRC (void);
@@ -231,10 +234,17 @@ void calibraMag (void);
 void mov_puntoAPunto (void);
 void modo_funcionamiento (void);
 void velocidades (int8_t, int8_t);
-void encoders (void);
+void encoders_PWM (void);
+void lecturaIMU (void);
 void posicionamiento (void);
-void PWM_motores (void);
 void aceleracion (void);
+
+void init_sensorDistancia(void);
+void init_IMU(void);
+void init_encoders(void);
+void init_controlMotores(void);
+void init_timersNecesarios(void);
+void init_comESP01(void);
 
 
 /* USER CODE END PFP */
@@ -282,7 +292,7 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
-  //flag_quieto = 1; //comentar para que se mueva el robot
+//  flag_quieto = 1; //comentar para que se mueva el robot
 
   HAL_TIM_Base_Start_IT(&htim7); //desborda cada 10 ms.
 
@@ -319,31 +329,24 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-
-	  if (flag_cmd != 0){
-		  controlRxTxUART(rxUart);
-		  flag_cmd = 0;
-	  }
-
-	  SR_04();
-	  sensores();
 	  modo_funcionamiento();
-	  encoders();
+	  sensores(); //SR04 e infrarrojos
 	  velocidades(velL, velR);
 
 
 	  if (desbordeTIM7 != 0){ //cada 10 ms
-		  periodo_Encoder += desbordeTIM7;
+
+		  periodo_muestrasOdometria += desbordeTIM7;
 		  periodo_SR04 += desbordeTIM7;
 		  periodo_pos += desbordeTIM7;
 		  desbordeTIM7 = 0;
 
-		  if (periodo_Encoder > 21){ // en 10 * ms
-			  flag_encoders = 1;
-			  periodo_Encoder = 0;
+		  if (periodo_muestrasOdometria > 21){ // en 10 * ms
+			  lecturaIMU();
+			  encoders_PWM();
+			  flag_nuevasMuestras = 1;
+			  periodo_muestrasOdometria = 0;
 		  }
-
 
 		  if (periodo_pos > 21){
 			  posicionamiento();
@@ -373,10 +376,15 @@ int main(void)
 
 	  } //fin if desbordeTIM7
 
+	  //comunicacion ESP01
+	  if (flag_cmd != 0){
+		  controlRxTxUART(rxUart);
+		  flag_cmd = 0;
+	  }
+
 	  //cuenta duracion del bucle
 	  duracionWhile1 = TIM7->CNT - last_cuentaTIM7;
 	  last_cuentaTIM7 = TIM7->CNT;
-
 
     /* USER CODE END WHILE */
 
@@ -445,12 +453,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3){
 		ic1 = htim->Instance->CCR3;
-		flancoEco++;
+		flancoEco_SR04++;
 	}
 
 	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4){
 		ic2 = htim->Instance->CCR4;
-		flancoEco++;
+		flancoEco_SR04++;
 	}
 }
 
@@ -459,9 +467,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 }
 
 
-void SR_04 (void){
+void sensores (void){
 
-	switch (flancoEco){
+	switch (flancoEco_SR04){
 		case 0:
 		case 1:
 			return;
@@ -472,16 +480,13 @@ void SR_04 (void){
 			}else{
 				distanciaSR04 = 400;
 			}
-			flancoEco = 0;
+			flancoEco_SR04 = 0;
 		break;
 		default:
-			flancoEco = 0;
+			flancoEco_SR04 = 0;
 		break;
-	} //end switch flancoEco
+	} //end switch flancoEco_SR04
 
-} //end SR_04()
-
-void sensores (void){
 	//sensores_dist = SI << 2 | SF << 1 | SD (logica negativa)
 	SI = (HAL_GPIO_ReadPin(IN_sensorL_GPIO_Port, IN_sensorL_Pin)) ;
 	SD = HAL_GPIO_ReadPin(IN_sensorR_GPIO_Port, IN_sensorR_Pin);
@@ -490,17 +495,6 @@ void sensores (void){
 	sensores_dist = SI << 2 | SF << 1 | SD;
 } //end sensores()
 
-void PWM_motores (void){
-
-	TIM4->CCR1 += velL - encoderL;
-	if (TIM4->CCR1 < 62) TIM4->CCR1 = 62;
-	if (TIM4->CCR1 > 82) TIM4->CCR1 = 82;
-
-	TIM4->CCR2 += velR - encoderR;
-	if (TIM4->CCR2 < 62) TIM4->CCR2 = 62;
-	if (TIM4->CCR2 > 82) TIM4->CCR2 = 82;
-
-} //end PWM_motores()
 
 void aceleracion (void){
 	if (velL < velLFinal) velL++;
@@ -726,7 +720,7 @@ void movimientoRC (void){
 			velL = 0;
 			velR = 0;
 
-			//periodo_Encoder = 0;
+			//periodo_muestrasOdometria = 0;
 
 			if (avance_cant != 0){
 				acum_encoderL = 0;
@@ -949,6 +943,15 @@ void calibraMag (void){
 				estatus_calibraMag = 2;
 				periodo_calibraMag = 200;
 			}
+
+			if (raw_magX < magX_min) magX_min = raw_magX;
+			if (raw_magX > magX_max) magX_max = raw_magX;
+			if (raw_magY < magY_min) magY_min = raw_magY;
+			if (raw_magY > magY_max) magY_max = raw_magY;
+			magX_media = (magX_min + magX_max) / 2.0;
+			magY_media = (magY_min + magY_max) / 2.0;
+			magX_range = (magX_max - magX_min) / 1.0;
+			magY_range = (magY_max - magY_min) / 1.0;
 		break;
 		case 2:
 			if (!periodo_calibraMag){
@@ -978,11 +981,9 @@ void calibraMag (void){
 		break;
 		default:
 		break;
-	}
+	} //fin switch estatus_calibraMag
 
-
-
-} //fin orientando ()
+} //fin calibraMag ()
 
 
 void mov_puntoAPunto (void){
@@ -1105,6 +1106,7 @@ void mov_puntoAPunto (void){
 
 void velocidades (int8_t vl, int8_t vr){
 
+
 	if (flag_quieto != 0){
 		HAL_GPIO_WritePin(OUT_in1_GPIO_Port, OUT_in1_Pin, 0);
 		HAL_GPIO_WritePin(OUT_in2_GPIO_Port, OUT_in2_Pin, 0);
@@ -1140,9 +1142,7 @@ void velocidades (int8_t vl, int8_t vr){
 
 } //end velocidades()
 
-void encoders (void){
-
-	if (!flag_encoders) return;
+void encoders_PWM (void){
 
 	encoderL = __HAL_TIM_GET_COUNTER(&htim3);
 	__HAL_TIM_SET_COUNTER(&htim3, 0);
@@ -1183,15 +1183,42 @@ void encoders (void){
 	encoderL_memPositivo = 0;
 	encoderR_memNegativo = 0;
 	encoderR_memPositivo = 0;
-	flag_encoders = 0;
 
-} //fin encoders()
+} //fin encoders_PWM()
+
+
+void lecturaIMU (void){
+	//magnetometro
+	mpu9265_Read_Magnet(&mpu9265);
+	raw_magX = (float) (mpu9265.Magnet_X_RAW); //media empirica +359.0
+	raw_magY = (float) (mpu9265.Magnet_Y_RAW); //media empirica -159.0
+
+	magX_iirX0 = raw_magX - magX_media;
+	magY_iirX0 = raw_magY - magY_media;
+	if (magX_range != 0.0) magX_iirX0 /= magX_range;
+	if (magY_range != 0.0) magY_iirX0 /= magY_range;
+
+	if (!flag_iniciaIIR){
+		magX = magX_iirY1 + betaIIR * (magX_iirX0 - magX_iirY1);
+		magY = magY_iirY1 + betaIIR * (magY_iirX0 - magY_iirY1);
+
+	}else{
+		magX = magX_iirX0;
+		magY = magY_iirX0;
+		//flag_iniciaIIR = 0; //comentado -> sin filtro
+	}
+	//giroscopio
+	mpu9265_Read_Gyro(&mpu9265);
+	gyroZ = (float) (mpu9265.Gyro_Z_RAW / 131.0);
+} //fin lecturaIMU()
+
 
 void posicionamiento (void){
 	//actualizo el angulo anterior
 	last_direccion_f32 = direccion_f32;
 
 	//calculo de angulo por magnetometro
+
 //	sum_magX = 0;
 //	sum_magY = 0;
 //	for (uint8_t i = 0; i < 32; i++){
@@ -1219,31 +1246,6 @@ void posicionamiento (void){
 //	if (magX_range != 0.0) magX /= magX_range;
 //	if (magY_range != 0.0) magY /= magY_range;
 
-	mpu9265_Read_Magnet(&mpu9265);
-	magX_iirX0 = (float) (mpu9265.Magnet_X_RAW); //media empirica +359.0
-	magY_iirX0 = (float) (mpu9265.Magnet_Y_RAW); //media empirica -159.0
-
-	if (magX_iirX0 < magX_min) magX_min = magX_iirX0;
-	if (magX_iirX0 > magX_max) magX_max = magX_iirX0;
-	if (magY_iirX0 < magY_min) magY_min = magY_iirX0;
-	if (magY_iirX0 > magY_max) magY_max = magY_iirX0;
-	magX_media = (magX_min + magX_max) / 2.0;
-	magY_media = (magY_min + magY_max) / 2.0;
-	magX_range = (magX_max - magX_min) / 1.0;
-	magY_range = (magY_max - magY_min) / 1.0;
-	magX_iirX0 -= magX_media;
-	magY_iirX0 -= magY_media;
-	if (magX_range != 0.0) magX_iirX0 /= magX_range;
-	if (magY_range != 0.0) magY_iirX0 /= magY_range;
-
-	if (!flag_iniciaIIR){
-		magX = magX_iirY1 + betaIIR * (magX_iirX0 - magX_iirY1);
-		magY = magY_iirY1 + betaIIR * (magY_iirX0 - magY_iirY1);
-	}else{
-		magX = magX_iirX0;
-		magY = magY_iirX0;
-	}
-
 	direccionMag_rad_f32 = atan2f(magY, magX); //radianes en float
 	direccionMag_grad_f32 = direccionMag_rad_f32 * 180.0 / M_PI; //grados en float
 
@@ -1258,8 +1260,6 @@ void posicionamiento (void){
 	} //fin if direccionMag_grad_f32...
 
 	//calculo de angulo por giroscopio
-	mpu9265_Read_Gyro(&mpu9265);
-	gyroZ = (float) (mpu9265.Gyro_Z_RAW / 131.0);
 	direccionGiro_grad_f32 += gyroZ * 0.21; //grados en float
 
 	if (direccionGiro_grad_f32 < -180.0){

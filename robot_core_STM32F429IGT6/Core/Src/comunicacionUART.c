@@ -13,7 +13,6 @@
 extern T_MODO modoFuncionamiento;
 extern uint8_t estatus_calibraMag;
 extern uint8_t esp01Presente;
-extern uint8_t flag_encoders;
 
 extern uint8_t pos_x;
 extern uint8_t pos_y;
@@ -97,7 +96,6 @@ void iniciaInstruccion (void){
 				case AUTOMATICO:
 					modoFuncionamiento = AUTOMATICO;
 					flag_dest = 0;
-					flag_encoders = 0;
 					tx[0] = OK_;
 					tx[7] = '\0';
 					HAL_UART_Transmit_IT(uart_handler, tx, 8);
