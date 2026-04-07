@@ -23,37 +23,34 @@
 
 typedef enum{
 	//cmd base:
-	NO_CMD = 0x00, 	//comando nulo
-	HOLA = 0x01, 	//mensaje inicial
-	OK_,			//confirmación de recepcion
-	CANCEL_,		//instrucción de cancelación
-	CMD_ERROR,		//recepcion fallida
-	MODO,			//modo de funcionamiento (manual o automático)
-	INFOMSG,			//manda 6 caracteres con info
+	NO_CMD = 0x00, 		//comando nulo
+	HOLA = 0x01, 		//mensaje inicial
+	OK_ = 0x02,			//confirmación de recepcion
+	CANCEL_ = 0x03,		//instrucción de cancelación
+	CMD_ERROR = 0x04,	//recepcion fallida
+	MODO = 0x05,		//modo de funcionamiento
+	INFOMSG = 0x06,		//mensaje de informacion
 	//posicionamiento:
-	COORD_X,		//coordenada X (en pulsos del encoder) (consulta o parte de una trama)
-	COORD_Y,		//coordenada Y (un pulsos del encoder) (consulta o parte de una trama)
-	COORD_ANG,		//angulo del robot (Norte = 0 por omisión) (consulta o parte de una trama)
-	POSICION,		//lectura de la coordenada actual
-	DESTINO,		//comndo de siguiente coordenada de destino (instruccion)
-	HOME,			//lectura de la coordenada de HOME (consulta)
-	GO_HOME,		//dirigirse a la coordenada de HOME (instruccion)
-	SET_HOME,		//definir como coordenada de HOME a la posición actual (instruccion)
+	POSICION = 0x07,	//lectura de la coordenada actual
+	DESTINO = 0x08,		//comndo de siguiente coordenada de destino
+	HOME = 0x09,		//coordenada de HOME (lectura o escritura)
+	GO_HOME = 0x0A,		//dirigirse a la coordenada de HOME (modo punto a punto)
 	//comando de movimiento:
-	AVANCE,			//envia instrucción de avance (modo manual) (instruccion)
-	GIRO_IZQ,		//envia instrucción de girar a la izquierda (modo manual) (instruccion)
-	GIRO_DER,		//envia instrucción de girar a la derecha (modo manual) (instruccion)
-	RETROCEDE,		//envia instrucción de retroceder (modo manual) (instruccion)
-	STOP,			//envia instrucción de detenerse (modo manual) (instruccion)
-	//lecturas de movimiento:
-	ACEL_AVANCE,	//lectura de aceleración en sentido avance (consulta)
-	DIST_AVANCE,	//lectura de distancia avanzada (consulta)
-	VEL_AVANCE,		//lectura de velocidad de avance (consulta)
-	ACEL_GIRO,		//lectura de aceleración de giro (izq = sentido positivo) (consulta)
-	DIST_GIRO,		//lectura de angulo de giro (izq = sentido positivo) (consulta)
-	VEL_GIRO,		//lectura de velocidad de giro (izq = sentido positivo) (consulta)
-	DELTA_ENC_L,	//delta del encoder izquierdo (consulta)
-	DELTA_ENC_R,	//delta del encoder derecho (consulta)
+	AVANCE = 0x0B,		//envia instrucción de avance (modo manual)
+	GIRO_IZQ = 0x0C,	//envia instrucción de girar a la izquierda (modo manual)
+	GIRO_DER = 0x0D,	//envia instrucción de girar a la derecha (modo manual)
+	RETROCEDE = 0x0E,	//envia instrucción de retroceder (modo manual)
+	STOP = 0x0F,		//envia instrucción de detenerse (modo manual)
+	//debug:
+	DELTA_ENC_L = 0x10,	//delta del encoder izquierdo (consulta)
+	DELTA_ENC_R = 0x11,	//delta del encoder derecho (consulta)
+	DATA_GYRO = 0x12,	//lectura de datos del giroscopio
+	DATA_MAG = 0x13,	//lectura de datos del magnetometro (brujula)
+	DATA_ACEL = 0x14,	//lectura de datos del acelerometro
+	DATA_ENC = 0x15,	//lectura de datos de los ecoders [izq, der]
+	DATA_SR04 = 0x16,	//lectura de datos del HC_SR04
+	DATA_IR = 0x17,		//lectura de datos de los sensores ifrarrojos [izq, der]
+	SIZE_T_CMD,			//SIEMPRE ULTIMO VALOR; tamaño del enum
 }T_CMD;
 
 typedef enum{
@@ -63,6 +60,24 @@ typedef enum{
 	PUNTO_A_PUNTO,
 }T_MODO;
 
+typedef enum{
+	READ,
+	WRITE,
+}T_RW;
 
+typedef enum{
+	PREG,
+	RESP,
+}T_PREG_RESP;
+
+typedef enum{
+	ERROR_DESCONOCIDO,
+	ERROR_CABECERA,
+	ERROR_CHECKSUM,
+	ERROR_CMD,
+	ERROR_PARAM,
+	ERROR_DENEGADO_CMD,
+	ERROR_DENEGADO_PARAM,
+}T_ERROR;
 
 #endif /* INC_COMANDOSUART_H_ */

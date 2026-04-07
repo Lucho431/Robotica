@@ -12,7 +12,7 @@
 #include "main.h"
 
 void init_controlRxTx (UART_HandleTypeDef*);
-void controlRxTxUART (uint8_t []);
 void send_info (uint8_t []);
 
+void procesaCmd (uint8_t [], uint8_t);
 #endif /* INC_COMUNICACIONUART_H_ */

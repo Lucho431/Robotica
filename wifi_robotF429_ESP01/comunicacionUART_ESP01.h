@@ -22,10 +22,14 @@ typedef enum{
 	SEND_TXUART,
 	SEND_BOTH,
 }T_CTRL_COM;
-
+/*
 void init_controlRxTx (char[], char[], uint8_t[]);
 T_CTRL_COM controlRxTxUART (char []);
 void iniciaInstruccion (T_CMD);
+*/
+uint8_t validaTrama (uint8_t*, uint8_t); //acá hago el checksum y la cabecera
+void ejecutaCmd (uint8_t*);
+uint8_t generaRta (void);
 
 #endif /* INC_COMUNICACIONUART_H_ */
 

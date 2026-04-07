@@ -170,10 +170,7 @@ float calMagY; //y-axis sensitivity adjustment value.
 float calMagZ; //z-axis sensitivity adjustment value.
 
 
-
-
-
-void mpu9265_Init(I2C_HandleTypeDef* i2c_handler){
+int8_t mpu9265_Init(I2C_HandleTypeDef* i2c_handler){
 	uint8_t check, data;
 
 	hi2c_mpu = i2c_handler;
@@ -191,6 +188,7 @@ void mpu9265_Init(I2C_HandleTypeDef* i2c_handler){
 		HAL_I2C_Mem_Write(hi2c_mpu, MPU9250_ADDRESS << 1, GYRO_CONFIG, 1, &data, 1, 1000); //SET GYROSCOPIC CONFIGURATION: XG_ST=0; YG_ST=0; ZG_ST=0; FS_SEL=0 -> +/- 250 º/s.
 		HAL_I2C_Mem_Write(hi2c_mpu, MPU9250_ADDRESS << 1, ACCEL_CONFIG, 1, &data, 1, 1000); //SET accelerometer CONFIGURATION: XA_ST=0; YA_ST=0; ZA_ST=0; FS_SEL=0 -> +/- 2g.
 	}else{
+		return -1;
 		//Error_Handler();
 	}
 
@@ -231,12 +229,13 @@ void mpu9265_Init(I2C_HandleTypeDef* i2c_handler){
 		HAL_Delay(100);
 
 	}else{
+		return -2;
 		//Error_Handler();
 	}
 
+	return 0;
+} //end mpu9265_Init ()
 
-
-}
 
 void mpu9265_Read_Accel(mpuData_t* mpuData){
 
@@ -246,7 +245,8 @@ void mpu9265_Read_Accel(mpuData_t* mpuData){
 	mpuData->Accel_X_RAW = (uint16_t) ( data[0]<<8 | data[1] );
 	mpuData->Accel_Y_RAW = (uint16_t) ( data[2]<<8 | data[3] );
 	mpuData->Accel_Z_RAW = (uint16_t) ( data[4]<<8 | data[5] );
-}
+} //end mpu9265_Read_Accel ()
+
 
 void mpu9265_Read_Gyro(mpuData_t* mpuData){
 
@@ -256,7 +256,8 @@ void mpu9265_Read_Gyro(mpuData_t* mpuData){
 	mpuData->Gyro_X_RAW = (uint16_t) ( data[0]<<8 | data[1] );
 	mpuData->Gyro_Y_RAW = (uint16_t) ( data[2]<<8 | data[3] );
 	mpuData->Gyro_Z_RAW = (uint16_t) ( data[4]<<8 | data[5] );
-}
+} //end mpu9265_Read_Gyro ()
+
 
 void mpu9265_Read_Magnet(mpuData_t* mpuData){
 
@@ -272,4 +273,10 @@ void mpu9265_Read_Magnet(mpuData_t* mpuData){
 			mpuData->Magnet_Z_RAW = (uint16_t) ( data[5]<<8 | data[4] );
 		}
 	}
-}
+} //end mpu9265_Read_Magnet ()
+
+
+void mpu9265_dummy (void){
+	return;
+} //end mpu9265_dummy ()
+

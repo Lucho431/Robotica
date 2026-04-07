@@ -8,52 +8,39 @@
 #ifndef INC_COMANDOSUART_H_
 #define INC_COMANDOSUART_H_
 
-//#define HOLA
-//#define OK
-//#define CANCEL
-//#define MODO
-//#define COORD_X
-//#define COORD_Y
-//#define COORD_ANG
-//#define DESTINO
-//#define AVANZA
-//#define GIRO_IZQ
-//#define GIRO_DER
-//#define RETROCEDE
+#define MAX_RX 50
+#define MAX_TX 50
 
 typedef enum{
-	//cmd base:3
-	NO_CMD = 0x00, 	//comando nulo
-	HOLA = 0x01, 	//mensaje inicial
+	//cmd base:
+	NO_CMD = 0x00, 		//comando nulo
+	HOLA = 0x01, 		//mensaje inicial
 	OK_ = 0x02,			//confirmación de recepcion
 	CANCEL_ = 0x03,		//instrucción de cancelación
-	CMD_ERROR = 0x04,		//recepcion fallida
-	MODO = 0x05,			//modo de funcionamiento (manual o automático)
-	INFOMSG = 0x06,			//manda 6 caracteres con info
+	CMD_ERROR = 0x04,	//recepcion fallida
+	MODO = 0x05,		//modo de funcionamiento
+	INFOMSG = 0x06,		//mensaje de informacion
 	//posicionamiento:
-	COORD_X = 0x07,		//coordenada X (en pulsos del encoder) (consulta o parte de una trama)
-	COORD_Y = 0x08,		//coordenada Y (un pulsos del encoder) (consulta o parte de una trama)
-	COORD_ANG = 0x09,		//angulo del robot (Norte = 0 por omisión) (consulta o parte de una trama)
-	POSICION = 0x0A,		//lectura de la coordenada actual
-	DESTINO = 0x0B,		//comndo de siguiente coordenada de destino (instruccion)
-	HOME = 0x0C,			//lectura de la coordenada de HOME (consulta)
-	GO_HOME = 0x0D,		//dirigirse a la coordenada de HOME (instruccion)
-	SET_HOME = 0x0E,		//definir como coordenada de HOME a la posición actual (instruccion)
+	POSICION = 0x07,	//lectura de la coordenada actual
+	DESTINO = 0x08,		//comndo de siguiente coordenada de destino
+	HOME = 0x09,		//coordenada de HOME (lectura o escritura)
+	GO_HOME = 0x0A,		//dirigirse a la coordenada de HOME (modo punto a punto)
 	//comando de movimiento:
-	AVANCE = 0x0F,			//envia instrucción de avance (modo manual) (instruccion)
-	GIRO_IZQ = 0x10,		//envia instrucción de girar a la izquierda (modo manual) (instruccion)
-	GIRO_DER = 0x11,		//envia instrucción de girar a la derecha (modo manual) (instruccion)
-	RETROCEDE = 0x12,		//envia instrucción de retroceder (modo manual) (instruccion)
-	STOP = 0x13,			//envia instrucción de detenerse (modo manual) (instruccion)
-	//lecturas de movimiento:
-	ACEL_AVANCE = 0x14,	//lectura de aceleración en sentido avance (consulta)
-	DIST_AVANCE = 0x15,	//lectura de distancia avanzada (consulta)
-	VEL_AVANCE = 0x16,		//lectura de velocidad de avance (consulta)
-	ACEL_GIRO = 0x17,		//lectura de aceleración de giro (izq = sentido positivo) (consulta)
-	DIST_GIRO = 0x18,		//lectura de angulo de giro (izq = sentido positivo) (consulta)
-	VEL_GIRO = 0x19,		//lectura de velocidad de giro (izq = sentido positivo) (consulta)
-	DELTA_ENC_L = 0x1A,	//delta del encoder izquierdo (consulta)
-	DELTA_ENC_R = 0x1B,	//delta del encoder derecho (consulta)
+	AVANCE = 0x0B,		//envia instrucción de avance (modo manual)
+	GIRO_IZQ = 0x0C,	//envia instrucción de girar a la izquierda (modo manual)
+	GIRO_DER = 0x0D,	//envia instrucción de girar a la derecha (modo manual)
+	RETROCEDE = 0x0E,	//envia instrucción de retroceder (modo manual)
+	STOP = 0x0F,		//envia instrucción de detenerse (modo manual)
+	//debug:
+	DELTA_ENC_L = 0x10,	//delta del encoder izquierdo (consulta)
+	DELTA_ENC_R = 0x11,	//delta del encoder derecho (consulta)
+	DATA_GYRO = 0x12,	//lectura de datos del giroscopio
+	DATA_MAG = 0x13,	//lectura de datos del magnetometro (brujula)
+	DATA_ACEL = 0x14,	//lectura de datos del acelerometro
+	DATA_ENC = 0x15,	//lectura de datos de los ecoders [izq, der]
+	DATA_SR04 = 0x16,	//lectura de datos del HC_SR04
+	DATA_IR = 0x17,		//lectura de datos de los sensores ifrarrojos [izq, der]
+	SIZE_T_CMD,			//SIEMPRE ULTIMO VALOR; tamaño del enum
 }T_CMD;
 
 typedef enum{
@@ -62,6 +49,26 @@ typedef enum{
 	CALIBRA_MAG,
 	PUNTO_A_PUNTO,
 }T_MODO;
+
+typedef enum{
+	READ,
+	WRITE,
+}T_RW;
+
+typedef enum{
+	PREG,
+	RESP,
+}T_PREG_RESP;
+
+typedef enum{
+	ERROR_DESCONOCIDO,
+	ERROR_CABECERA,
+	ERROR_CHECKSUM,
+	ERROR_CMD,
+	ERROR_PARAM,
+	ERROR_DENEGADO_CMD,
+	ERROR_DENEGADO_PARAM,
+}T_ERROR;
 
 
 

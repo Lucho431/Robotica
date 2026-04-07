@@ -1,4 +1,5 @@
-mpu_9265_lfs.c:176:6:mpu9265_Init	3
-mpu_9265_lfs.c:241:6:mpu9265_Read_Accel	1
+mpu_9265_lfs.c:173:8:mpu9265_Init	3
+mpu_9265_lfs.c:240:6:mpu9265_Read_Accel	1
 mpu_9265_lfs.c:251:6:mpu9265_Read_Gyro	1
-mpu_9265_lfs.c:261:6:mpu9265_Read_Magnet	3
+mpu_9265_lfs.c:262:6:mpu9265_Read_Magnet	3
+mpu_9265_lfs.c:279:6:mpu9265_dummy	1

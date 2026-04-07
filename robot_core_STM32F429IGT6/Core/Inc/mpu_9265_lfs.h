@@ -23,9 +23,10 @@ typedef struct {
 	int16_t Magnet_Z_RAW;
 } mpuData_t;
 
-void mpu9265_Init(I2C_HandleTypeDef*);
+int8_t mpu9265_Init(I2C_HandleTypeDef*);
 void mpu9265_Read_Accel(mpuData_t*);
 void mpu9265_Read_Gyro(mpuData_t*);
 void mpu9265_Read_Magnet(mpuData_t*);
+void mpu9265_dummy(void);
 
 #endif /* MPU_9265_LFS_H_ */

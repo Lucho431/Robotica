@@ -4,8 +4,7 @@
 #include "comandosUart.h"
 #include "comunicacionUART_ESP01.h"
 
-#define RXUART_BUFFER_SIZE 20
-#define RXMQTT_BUFFER_SIZE 20
+#define RXUART_BUFFER_SIZE 8
 
 #define TICK_PERIOD     10 //en ms.
 
@@ -37,19 +36,15 @@ PubSubClient client(espClient);
 String clientId;
 unsigned long lastMsg = 0;
 
-//variables de uart
-uint8_t sizeRxUart = 0;
+uint8_t sizeCmd = 0;
+
 char rxUart [RXUART_BUFFER_SIZE];
-uint8_t cmdUart [3][RXUART_BUFFER_SIZE];
-uint8_t sizeCmdUart[3] = {0};
+uint8_t cmdUart [3][8];
 uint8_t index_uartIn = 0;
 uint8_t index_uartOut = 0;
 uint8_t cola_uart = 0;
-uint8_t tramaValida = 0;
-//variables mqtt
-uint8_t sizeRxMqtt = 0;
-uint8_t cmdMqtt [3][RXMQTT_BUFFER_SIZE];
-uint8_t sizeCmdMqtt[3] = {0};
+
+uint8_t cmdMqtt [3][8];
 uint8_t index_mqttIn = 0;
 uint8_t index_mqttOut = 0;
 uint8_t cola_mqtt = 0;
@@ -83,13 +78,14 @@ void timer_update(void){
 void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 	
 	if (cola_mqtt < 3){
-		
-		sizeCmdMqtt[index_mqttIn] = length;
-		
-		for (uint8_t i = 0; i < length; i++){
-			cmdMqtt [index_mqttIn] [i] = payload[i];
-		} //end for i
-		
+		cmdMqtt [index_mqttIn] [0] = payload [0];
+		cmdMqtt [index_mqttIn] [1] = payload [1];
+		cmdMqtt [index_mqttIn] [2] = payload [2];
+		cmdMqtt [index_mqttIn] [3] = payload [3];
+		cmdMqtt [index_mqttIn] [4] = payload [4];
+		cmdMqtt [index_mqttIn] [5] = payload [5];
+		cmdMqtt [index_mqttIn] [6] = payload [6];
+		cmdMqtt [index_mqttIn] [7] = payload [7];
 		if (index_mqttIn < 2){
 			index_mqttIn++;
 		}else{
@@ -98,6 +94,7 @@ void callback_MQTT(char* topic, byte* payload, unsigned int length) {
 		cola_mqtt++;
 	} //end if cola_mqtt
 	
+	//Serial.write (cmdUart, 8);
 	return;
 
 } //fin callback()
@@ -251,49 +248,85 @@ void loop() {
 	
 	if (Serial.available() > 0){
 		
-		sizeRxUart = Serial.readBytes(rxUart, RXUART_BUFFER_SIZE);
-		
-		if (cola_uart < 3){
-			
-			sizeCmdUart[index_uartIn] = sizeRxUart;
-			
-			for (uint8_t i = 0; i < sizeRxUart; i++){
-				cmdUart [index_uartIn] [i] = rxUart [i];
-			} //end for i		
-					
-			if (index_uartIn < 2){
-				index_uartIn++;
-			}else{
-				index_uartIn = 0;
-			} //end if index_uartIn
-			
-			cola_uart++;
-		} //end if cola_uart
-		
+		sizeCmd = Serial.readBytes(rxUart, RXUART_BUFFER_SIZE);
+		if (sizeCmd == 8){
+			if (cola_uart < 3){
+				cmdUart [index_uartIn] [0] = rxUart [0];
+				cmdUart [index_uartIn] [1] = rxUart [1];
+				cmdUart [index_uartIn] [2] = rxUart [2];
+				cmdUart [index_uartIn] [3] = rxUart [3];
+				cmdUart [index_uartIn] [4] = rxUart [4];
+				cmdUart [index_uartIn] [5] = rxUart [5];
+				cmdUart [index_uartIn] [6] = rxUart [6];
+				cmdUart [index_uartIn] [7] = rxUart [7];
+				if (index_uartIn < 2){
+					index_uartIn++;
+				}else{
+					index_uartIn = 0;
+				} //end if index_uartIn
+				cola_uart++;
+			} //end if cola_uart
+		} //end if (sizeCmd == 8)
 	} //end if Serial.available
 	
-	
 	if (cola_uart != 0){
-		tramaValida = validaTrama ( &cmdUart[index_uartOut][0], sizeCmdUart[index_uartOut]);
+		switch (cmdUart [index_uartOut][0]){
+			case HOLA:
+				sprintf(txtTopic, "Info/Nodo_ESP01/HOLA");
+				sprintf(texto, "%u,%u,%u,%u,%u,%u,%u,%u", cmdUart [index_uartOut][0], cmdUart [index_uartOut][1], cmdUart [index_uartOut][2], cmdUart [index_uartOut][3], cmdUart [index_uartOut][4], cmdUart [index_uartOut][5], cmdUart [index_uartOut][6], cmdUart [index_uartOut][7]);
+				Serial.write( &cmdUart[index_uartOut][0], 8);
+			break;
+			case CMD_ERROR:
+				sprintf(txtTopic, "Info/Nodo_ESP01/CMD_ERROR");
+				sprintf(texto, "%u,%u,%u,%u,%u,%u,%u,%u", cmdUart [index_uartOut][0], cmdUart [index_uartOut][1], cmdUart [index_uartOut][2], cmdUart [index_uartOut][3], cmdUart [index_uartOut][4], cmdUart [index_uartOut][5], cmdUart [index_uartOut][6], cmdUart [index_uartOut][7]);
+			break;
+			case MODO:
+				sprintf(txtTopic, "Info/Nodo_ESP01/MODO");
+				switch (cmdUart [index_uartOut][1]){
+					case AUTOMATICO:
+						sprintf(texto, "AUTOMATICO");
+					break;
+					case MANUAL:
+						sprintf(texto, "AUTOMATICO");
+					break;
+					case CALIBRA_MAG:
+						sprintf(texto, "AUTOMATICO");
+					break;
+					case PUNTO_A_PUNTO:
+						sprintf(texto, "AUTOMATICO");
+					break;
+					default:
+						sprintf(texto, "NAK");
+					break;
+				} //end switch cmdUart[1]
+				//sprintf(texto, "%u,%u,%u,%u,%u,%u,%u,%u", cmdUart [index_uartOut][0], cmdUart [index_uartOut][1], cmdUart [index_uartOut][2], cmdUart [index_uartOut][3], cmdUart [index_uartOut][4], cmdUart [index_uartOut][5], cmdUart [index_uartOut][6], cmdUart [index_uartOut][7]);
+			break;
+			case DIST_GIRO:
+				sprintf(txtTopic, "Info/Nodo_ESP01/DIST_GIRO");
+				sprintf(texto, "%u,%u,%u,%u,%u,%u,%u,%u", cmdUart [index_uartOut][0], cmdUart [index_uartOut][1], cmdUart [index_uartOut][2], cmdUart [index_uartOut][3], cmdUart [index_uartOut][4], cmdUart [index_uartOut][5], cmdUart [index_uartOut][6], cmdUart [index_uartOut][7]);
+			break;
+			case INFOMSG:
+				sprintf(txtTopic, "Info/Nodo_ESP01/INFO_MSG");
+				sprintf(texto, "%c%c%c%c%c%c%c%c", cmdUart [index_uartOut][0], cmdUart [index_uartOut][1], cmdUart [index_uartOut][2], cmdUart [index_uartOut][3], cmdUart [index_uartOut][4], cmdUart [index_uartOut][5], cmdUart [index_uartOut][6], cmdUart [index_uartOut][7]);
+			break;
+			default:
+				sprintf(txtTopic, "Info/Nodo_ESP01/INDEF");
+				sprintf(texto, "%u,%u,%u,%u,%u,%u,%u,%u", cmdUart [index_uartOut][0], cmdUart [index_uartOut][1], cmdUart [index_uartOut][2], cmdUart [index_uartOut][3], cmdUart [index_uartOut][4], cmdUart [index_uartOut][5], cmdUart [index_uartOut][6], cmdUart [index_uartOut][7]);		
+			break;
+		} //end switch cmdUart
 		
-		if (!tramaValida){
-			ejecutaCmd(&cmdUart[index_uartOut][0]);
-		}
-		
+		client.publish(txtTopic, texto);
+		client.flush();
 		if (index_uartOut < 2){
 			index_uartOut++;
 		}else{
 			index_uartOut = 0;
 		} //end if index_uartOut
-		
 		cola_uart--;
-	} //end if cola_uart != 0
-	
+	} //end if cola_uart
 	
 	if (cola_mqtt != 0){
-
-		Serial.write( &cmdMqtt[index_mqttOut][0], sizeCmdMqtt[index_mqttOut] );
-		
+		Serial.write( &cmdMqtt[index_mqttOut][0], 8);
 		if (index_mqttOut < 2){
 			index_mqttOut++;
 		}else{
@@ -301,7 +334,7 @@ void loop() {
 		} //end if index_mqttOut
 		cola_mqtt--;
 	} //end if cola_mqtt
-		
+	
 	
 	if (flag_tick){
 		if (reconnect_time != 0) reconnect_time--;

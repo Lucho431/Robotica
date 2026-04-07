@@ -12,7 +12,7 @@
 
 extern T_MODO modoFuncionamiento;
 extern uint8_t estatus_calibraMag;
-extern uint8_t esp01Presente;
+extern uint8_t flag_esp01Presente;
 
 extern uint8_t pos_x;
 extern uint8_t pos_y;
@@ -38,7 +38,7 @@ extern uint8_t flag_dest;
 
 UART_HandleTypeDef* uart_handler;
 
-uint8_t tx [8];
+uint8_t tx [MAX_TX];
 uint8_t* p_rx;
 T_CMD cmdEsperado = NO_CMD;
 T_CMD cmdActual = NO_CMD;
@@ -46,10 +46,48 @@ uint8_t cmdSecuencia = 0; //contador decremental de tramas restantes de una inst
 
 int16_t aux_direccion;
 
+uint8_t tramaValida = 0;
 
 ////prototipos de funciones/////
 void iniciaInstruccion(void);
-void continuaInstruccion(void);
+
+void cmd_defaultCmd (uint8_t*);
+void cmd_hola (uint8_t*);
+void cmd_modo (uint8_t*);
+void cmd_posicion (uint8_t*);
+void cmd_home (uint8_t*);
+void cmd_avance (uint8_t*);
+void cmd_giroIzq (uint8_t*);
+void cmd_giroDer (uint8_t*);
+void cmd_retrocede (uint8_t*);
+
+void ( *tablaCmd[SIZE_T_CMD] ) (uint8_t*) = {
+												cmd_defaultCmd, //NO_CMD
+												cmd_hola, //HOLA = 0x01, 		//mensaje inicial
+												cmd_defaultCmd, //OK_ = 0x02,			//confirmación de recepcion
+												cmd_defaultCmd, //CANCEL_ = 0x03,		//instrucción de cancelación
+												cmd_defaultCmd, //CMD_ERROR = 0x04,	//recepcion fallida
+												cmd_modo, //MODO = 0x05,		//modo de funcionamiento (manual o automático)
+												cmd_defaultCmd, //INFOMSG = 0x06,		//manda 6 caracteres con info
+												cmd_posicion, //POSICION = 0x07,	//lectura de la coordenada actual
+												cmd_defaultCmd, //DESTINO = 0x08,		//comndo de siguiente coordenada de destino (instruccion)
+												cmd_home, //HOME = 0x09,		//lectura de la coordenada de HOME (consulta)
+												cmd_defaultCmd, //GO_HOME = 0x0A,		//dirigirse a la coordenada de HOME (instruccion)
+												cmd_avance, //AVANCE = 0x0B,		//envia instrucción de avance (modo manual) (instruccion)
+												cmd_giroIzq, //GIRO_IZQ = 0x0C,	//envia instrucción de girar a la izquierda (modo manual) (instruccion)
+												cmd_giroDer, //GIRO_DER = 0x0D,	//envia instrucción de girar a la derecha (modo manual) (instruccion)
+												cmd_retrocede, //RETROCEDE = 0x0E,	//envia instrucción de retroceder (modo manual) (instruccion)
+												cmd_defaultCmd, //STOP = 0x0F,		//envia instrucción de detenerse (modo manual) (instruccion)
+												cmd_defaultCmd, //DELTA_ENC_L = 0x10,	//delta del encoder izquierdo (consulta)
+												cmd_defaultCmd, //DELTA_ENC_R = 0x11,	//delta del encoder derecho (consulta)
+												cmd_defaultCmd, //DATA_GYRO = 0x12,	//lectura de datos del giroscopio
+												cmd_defaultCmd, //DATA_MAG = 0x13,	//lectura de datos del magnetometro (brujula)
+												cmd_defaultCmd, //DATA_ACEL = 0x14,	//lectura de datos del acelerometro
+												cmd_defaultCmd, //DATA_ENC = 0x15,	//lectura de datos de los ecoders [izq, der]
+												cmd_defaultCmd, //DATA_SR04 = 0x16,	//lectura de datos del HC_SR04
+												cmd_defaultCmd, //DATA_IR = 0x17,		//lectura de datos de los sensores ifrarrojos [izq, der]
+};
+
 
 void init_controlRxTx (UART_HandleTypeDef* huart){
 	uart_handler = huart;
@@ -70,7 +108,6 @@ void controlRxTxUART (uint8_t rx[]){
 	p_rx = &rx[0];
 
 	if (cmdEsperado != NO_CMD){
-		continuaInstruccion();
 	}else{
 		iniciaInstruccion();
 	}
@@ -83,53 +120,6 @@ void controlRxTxUART (uint8_t rx[]){
 void iniciaInstruccion (void){
 
 	switch (p_rx[0]){
-		case HOLA:
-			esp01Presente = 1;
-			cmdEsperado = NO_CMD;
-			tx[0] = HOLA;
-			tx[7] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 8);
-		break;
-
-		case MODO:
-			switch (p_rx[1]) {
-				case AUTOMATICO:
-					modoFuncionamiento = AUTOMATICO;
-					flag_dest = 0;
-					tx[0] = OK_;
-					tx[7] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 8);
-					break;
-				case MANUAL:
-//					status_movimiento = QUIETO;
-					modoFuncionamiento = MANUAL;
-					flag_dest = 0;
-					tx[0] = OK_;
-					tx[7] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 8);
-					break;
-				case CALIBRA_MAG:
-					modoFuncionamiento = CALIBRA_MAG;
-					estatus_calibraMag = 0;
-					flag_dest = 0;
-					tx[0] = OK_;
-					tx[7] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 8);
-					break;
-				case PUNTO_A_PUNTO:
-					modoFuncionamiento = PUNTO_A_PUNTO;
-					flag_dest = 0;
-					tx[0] = OK_;
-					tx[7] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 8);
-					break;
-				default:
-					tx[0] = CMD_ERROR;
-					tx[1] = 2;
-					tx[7] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 8);
-			} //end switch p_rx[1]
-		break;
 		case POSICION:
 			tx[0] = POSICION;
 			if (posX_i16 < 0){
@@ -186,19 +176,6 @@ void iniciaInstruccion (void){
 			HAL_UART_Transmit_IT(uart_handler, tx, 8);
 			break;
 		break;
-		case HOME:
-			tx[0] = HOME;
-			tx[1] = posX_home >> 8;
-			tx[2] = posX_home & 0xFF;
-			tx[3] = posY_home >> 8;
-			tx[4] = posY_home & 0xFF;
-			tx[5] = direccion_home >>8;
-			tx[6] = direccion_home & 0xFF;
-			tx[7] = '\0';
-			cmdEsperado = NO_CMD;
-			HAL_UART_Transmit_IT(uart_handler, tx, 8);
-			break;
-		break;
 		case GO_HOME:
 			if (flag_dest != 0){
 				tx[0] = CANCEL_;
@@ -213,16 +190,6 @@ void iniciaInstruccion (void){
 				direccion_dest = direccion_home;
 				flag_dest = 1;
 			}
-
-			tx[0] = OK_;
-			tx[7] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 8);
-			break;
-		break;
-		case SET_HOME:
-			posX_home = (p_rx[2] + (p_rx[1] << 8));
-			posY_home = (p_rx[4] + (p_rx[3] << 8));
-			direccion_home = (p_rx[6] + (p_rx[5] << 8));
 
 			tx[0] = OK_;
 			tx[7] = '\0';
@@ -257,20 +224,18 @@ void iniciaInstruccion (void){
 			tx[7] = '\0';
 			HAL_UART_Transmit_IT(uart_handler, tx, 8);
 		break;
-		case VEL_AVANCE:
+		case 55: //VEL_AVANCE:
 			cmdEsperado = NO_CMD;
 
 //			mpu9265_Read_Accel(&mpu9265);
 
-			tx[0] = VEL_AVANCE;
 //			tx[1] = (uint8_t)(mpu9265.Accel_X_RAW >> 8);
 //			tx[2] = (uint8_t)(mpu9265.Accel_X_RAW & 0xFF);
 			tx[7] = '\0';
 			HAL_UART_Transmit_IT(uart_handler, tx, 8);
 		break;
-		case DIST_GIRO:
+		case 56: //DIST_GIRO:
 			cmdEsperado = NO_CMD;
-			tx[0] = DIST_GIRO;
 			if (direccion_i16 < 0){
 				aux_direccion = direccion_i16 + 360;
 			}else{
@@ -297,106 +262,6 @@ void iniciaInstruccion (void){
 } //end iniciaInstruccion ()
 
 
-void continuaInstruccion(void){
-
-	if (cmdEsperado != p_rx[0]){
-		cmdActual = NO_CMD;
-		cmdEsperado = NO_CMD;
-		cmdSecuencia = 0;
-		tx[0] = CMD_ERROR;
-		tx[1] = 4;
-		tx[7] = '\0';
-		HAL_UART_Transmit_IT(uart_handler, tx, 8);
-		return;
-	}
-
-	switch (cmdActual) {
-		case POSICION:
-			switch (cmdSecuencia){
-				case 2:
-					tx[0] = COORD_Y;
-					tx[1] = posY_i16 >> 8;
-					tx[2] = posY_i16 & 0xFF;
-					tx[7] = '\0';
-					cmdSecuencia--;
-					HAL_UART_Transmit_IT(uart_handler, tx, 8);
-				break;
-				case 1:
-					tx[0] = COORD_ANG;
-					tx[1] = direccion_i16 >>8;
-					tx[2] = direccion_i16 & 0xFF;
-					tx[7] = '\0';
-					cmdSecuencia--;
-					HAL_UART_Transmit_IT(uart_handler, tx, 8);
-				break;
-				case 0:
-					cmdActual = NO_CMD;
-					cmdEsperado = NO_CMD;
-				break;
-			} //end switch cmdSecuencia
-
-		break;
-		case HOME:
-			switch (cmdSecuencia){
-				case 2:
-					tx[0] = COORD_Y;
-					tx[1] = 0x0;
-					tx[2] = posY_i16 & 0xFF;
-					tx[7] = '\0';
-					cmdSecuencia--;
-					HAL_UART_Transmit_IT(uart_handler, tx, 8);
-				break;
-				case 1:
-					tx[0] = COORD_ANG;
-					tx[1] = 0x0;
-					tx[2] = pos_ang;
-					tx[7] = '\0';
-					cmdSecuencia--;
-					HAL_UART_Transmit_IT(uart_handler, tx, 8);
-				break;
-				case 0:
-					cmdActual = NO_CMD;
-					cmdEsperado = NO_CMD;
-				break;
-			} //end switch cmdSecuencia
-
-		break;
-
-		case SET_HOME:
-			switch (cmdEsperado){
-				case COORD_X:
-					pos_x = p_rx[1];//recibi la coordenada X
-					cmdEsperado = COORD_Y;
-					tx[0] = OK_;
-					tx[7] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 8);
-				break;
-				case COORD_Y:
-					pos_y = p_rx[1];//recibi la coordenada Y
-					cmdEsperado = COORD_ANG;
-					tx[0] = OK_;
-					tx[7] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 8);
-				break;
-				case COORD_ANG:
-					pos_ang = p_rx[1];//recibi el angulo
-					cmdEsperado = NO_CMD;
-					tx[0] = OK_;
-					tx[7] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 8);
-				break;
-				default:
-				break;
-			} //end switch cmdEsperado
-		break;
-		default:
-		break;
-	} //end switch cmdActual
-
-
-} //end continuaInstruccion()
-
-
 void send_info (uint8_t msg[]){
 	if (cmdActual == NO_CMD){
 		tx[0] = INFOMSG;
@@ -412,227 +277,203 @@ void send_info (uint8_t msg[]){
 }
 
 ///////////////////////////////
-/////       OLD         ///////
+/////       NEW         ///////
 ///////////////////////////////
 
-/*
-void iniciaInstruccion (void){
 
-	switch (p_rx[0]){
-		case HOLA:
-			esp01Presente = 1;
-			cmdEsperado = NO_CMD;
-			tx[0] = HOLA;
-			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
-		break;
+void procesaCmd (uint8_t p_trama[], uint8_t sizeTrama){
 
-		case MODO:
-			switch (p_rx[1]) {
-				case AUTOMATICO:
-					modoFuncionamiento = AUTOMATICO;
-					flag_encoders = 0;
-					tx[0] = OK_;
-					tx[3] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 4);
-					break;
-				case MANUAL:
-//					status_movimiento = QUIETO;
-					modoFuncionamiento = MANUAL;
-					tx[0] = OK_;
-					tx[3] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 4);
-					break;
-				default:
-					tx[0] = CMD_ERROR;
-					tx[3] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 4);
-			} //end switch p_rx[1]
-		break;
-		case POSICION:
-			cmdActual = POSICION;
-			tx[0] = COORD_X;
-			tx[1] = posX_i16 >> 8;
-			tx[2] = posX_i16 & 0xFF;
-			tx[3] = '\0';
-			cmdEsperado = OK_;
-			cmdSecuencia = 2;
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
-		break;
-		case HOME:
-			cmdActual = HOME;
-			tx[0] = COORD_X;
-			tx[1] = 0x0;
-			tx[2] = posX_i16 & 0xFF;
-			tx[3] = '\0';
-			cmdEsperado = OK_;
-			cmdSecuencia = 2;
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
-		break;
-		case SET_HOME:
-			cmdActual = SET_HOME;
-			tx[0] = OK_;
-			tx[3] = '\0';
-			cmdEsperado = COORD_X;
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
-		break;
-		case AVANCE:
-			avance_cant += (uint16_t) (p_rx[2] + (p_rx[1] << 8));
-			cmdEsperado = NO_CMD;
-			tx[0] = OK_;
-			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
-		break;
-		case RETROCEDE:
-			retroceso_cant += (uint16_t) (p_rx[2] + (p_rx[1] << 8));
-			cmdEsperado = NO_CMD;
-			tx[0] = OK_;
-			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
-		break;
-		case GIRO_IZQ:
-			giroIzq_cant += (uint16_t) (p_rx[2] + (p_rx[1] << 8));
-			cmdEsperado = NO_CMD;
-			tx[0] = OK_;
-			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
-		break;
-		case GIRO_DER:
-			giroDer_cant += (uint16_t) (p_rx[2] + (p_rx[1] << 8));
-			cmdEsperado = NO_CMD;
-			tx[0] = OK_;
-			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
-		break;
-		case VEL_AVANCE:
-			cmdEsperado = NO_CMD;
-
-//			mpu9265_Read_Accel(&mpu9265);
-
-			tx[0] = VEL_AVANCE;
-//			tx[1] = (uint8_t)(mpu9265.Accel_X_RAW >> 8);
-//			tx[2] = (uint8_t)(mpu9265.Accel_X_RAW & 0xFF);
-			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
-		break;
-		case DIST_GIRO:
-			cmdEsperado = NO_CMD;
-
-			tx[0] = COORD_ANG;
-			tx[1] = (uint8_t)(direccion_i16 >> 8);
-			tx[2] = (uint8_t)(direccion_i16 & 0xFF);
-			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
-		break;
-		default:
-			tx[0] = CMD_ERROR;
-			tx[3] = '\0';
-			HAL_UART_Transmit_IT(uart_handler, tx, 4);
-		break;
-	} //end switch (cmdEsperado)
-
-} //end iniciaInstruccion ()
-
-
-void continuaInstruccion(void){
-
-	if (cmdEsperado != p_rx[0]){
-		cmdActual = NO_CMD;
-		cmdEsperado = NO_CMD;
-		cmdSecuencia = 0;
-		tx[0] = CMD_ERROR;
-		tx[3] = '\0';
-		HAL_UART_Transmit_IT(uart_handler, tx, 4);
+	if (p_trama[0] != 0x2A){
+		p_trama[0] = 0x2A;
+		p_trama[1] = CMD_ERROR;
+		p_trama[2] = ERROR_CABECERA;
+		p_trama[3] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2]);
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 4);
+		HAL_UART_Receive_IT(uart_handler, p_trama, MAX_RX);
 		return;
+	} //end if 0x2A
+
+	uint8_t lastByte = sizeTrama - 1;
+	uint8_t suma = 0;
+
+	for (uint8_t i = 0; i < lastByte; i++){
+		suma += p_trama[i];
+	} //end for i
+
+	if ( suma != p_trama[lastByte] ){
+		p_trama[1] = CMD_ERROR;
+		p_trama[2] = ERROR_CHECKSUM;
+		p_trama[3] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2]);
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 4);
+		HAL_UART_Receive_IT(uart_handler, p_trama, MAX_RX);
+		return;
+	} //end if suma != checksum
+
+	tablaCmd [ p_trama[1] ] (p_trama);
+ } //end procesaCmd ()
+
+
+void cmd_defaultCmd (uint8_t *p_trama){
+	p_trama[1] = CMD_ERROR;
+	p_trama[2] = ERROR_CMD;
+	p_trama[3] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2]);
+	HAL_UART_Transmit_IT(uart_handler, p_trama, 4);
+	HAL_UART_Receive_IT(uart_handler, p_trama, MAX_RX);
+} //end cmd_defaultCmd ()
+
+
+void cmd_hola (uint8_t *p_trama){
+	if (p_trama[2] == PREG){
+		p_trama[2] = RESP;
+		p_trama[3] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2]);
+	}else if (p_trama[2] != RESP){
+		p_trama[1] = CMD_ERROR;
+		p_trama[2] = ERROR_PARAM;
+		p_trama[3] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2]);
 	}
-
-	switch (cmdActual) {
-		case POSICION:
-			switch (cmdSecuencia){
-				case 2:
-					tx[0] = COORD_Y;
-					tx[1] = posY_i16 >> 8;
-					tx[2] = posY_i16 & 0xFF;
-					tx[3] = '\0';
-					cmdSecuencia--;
-					HAL_UART_Transmit_IT(uart_handler, tx, 4);
-				break;
-				case 1:
-					tx[0] = COORD_ANG;
-					tx[1] = direccionMag_grad_i16 >>8;
-					tx[2] = direccionMag_grad_i16 & 0xFF;
-					tx[3] = '\0';
-					cmdSecuencia--;
-					HAL_UART_Transmit_IT(uart_handler, tx, 4);
-				break;
-				case 0:
-					cmdActual = NO_CMD;
-					cmdEsperado = NO_CMD;
-				break;
-			} //end switch cmdSecuencia
-
-		break;
-		case HOME:
-			switch (cmdSecuencia){
-				case 2:
-					tx[0] = COORD_Y;
-					tx[1] = 0x0;
-					tx[2] = posY_i16 & 0xFF;
-					tx[3] = '\0';
-					cmdSecuencia--;
-					HAL_UART_Transmit_IT(uart_handler, tx, 4);
-				break;
-				case 1:
-					tx[0] = COORD_ANG;
-					tx[1] = 0x0;
-					tx[2] = pos_ang;
-					tx[3] = '\0';
-					cmdSecuencia--;
-					HAL_UART_Transmit_IT(uart_handler, tx, 4);
-				break;
-				case 0:
-					cmdActual = NO_CMD;
-					cmdEsperado = NO_CMD;
-				break;
-			} //end switch cmdSecuencia
-
-		break;
-
-		case SET_HOME:
-			switch (cmdEsperado){
-				case COORD_X:
-					pos_x = p_rx[1];//recibi la coordenada X
-					cmdEsperado = COORD_Y;
-					tx[0] = OK_;
-					tx[3] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 4);
-				break;
-				case COORD_Y:
-					pos_y = p_rx[1];//recibi la coordenada Y
-					cmdEsperado = COORD_ANG;
-					tx[0] = OK_;
-					tx[3] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 4);
-				break;
-				case COORD_ANG:
-					pos_ang = p_rx[1];//recibi el angulo
-					cmdEsperado = NO_CMD;
-					tx[0] = OK_;
-					tx[3] = '\0';
-					HAL_UART_Transmit_IT(uart_handler, tx, 4);
-				break;
-				default:
-				break;
-			} //end switch cmdEsperado
-		break;
-		default:
-		break;
-	} //end switch cmdActual
+	HAL_UART_Transmit_IT(uart_handler, p_trama, 4);
+	flag_esp01Presente = 1;
+	HAL_UART_Receive_IT(uart_handler, p_trama, MAX_RX);
+} //end cmd_hola ()
 
 
-} //end continuaInstruccion()
+void cmd_modo (uint8_t *p_trama){
+	if (p_trama[2] == WRITE){ // R/W byte
+		switch (p_trama[3]){ //parametro
+			case AUTOMATICO:
+				modoFuncionamiento = AUTOMATICO;
+				flag_dest = 0;
+				HAL_UART_Transmit_IT(uart_handler, p_trama, 5);
+				break;
+			case MANUAL:
+				modoFuncionamiento = MANUAL;
+				flag_dest = 0;
+				HAL_UART_Transmit_IT(uart_handler, p_trama, 5);
+				break;
+			case CALIBRA_MAG:
+				modoFuncionamiento = CALIBRA_MAG;
+				estatus_calibraMag = 0;
+				flag_dest = 0;
+				HAL_UART_Transmit_IT(uart_handler, p_trama, 5);
+				break;
+			case PUNTO_A_PUNTO:
+				modoFuncionamiento = PUNTO_A_PUNTO;
+				flag_dest = 0;
+				HAL_UART_Transmit_IT(uart_handler, p_trama, 5);
+				break;
+			default:
+				tx[0] = CMD_ERROR;
+				tx[1] = 2;
+				tx[7] = '\0';
+				HAL_UART_Transmit_IT(uart_handler, tx, 8);
+		} //end switch p_trama 3
+		modoFuncionamiento = p_trama[3];
+	}else if (p_trama[2] == READ){ // R/W byte
+		p_trama[3] = modoFuncionamiento;
+		p_trama[4] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2] + p_trama[3]);
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 5);
+	}else{ // R/W byte
+		p_trama[1] = CMD_ERROR;
+		p_trama[2] = ERROR_PARAM;
+		p_trama[3] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2]);
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 4);
+	} //end if p_Trama 2
 
-*/
+	HAL_UART_Receive_IT(uart_handler, p_trama, MAX_RX);
+} //end cmd_modo
 
 
+void cmd_posicion (uint8_t *p_trama){
+	p_trama[2] = posX_i16 >> 8;
+	p_trama[3] = posX_i16 & 0xFF;
+	p_trama[4] = posY_i16 >> 8;
+	p_trama[5] = posY_i16 & 0xFF;
+	p_trama[6] = direccion_i16 >> 8;
+	p_trama[7] = direccion_i16 & 0xFF;
+	p_trama[8] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2] + p_trama[3] + p_trama[4] + p_trama[5] + p_trama[6] + p_trama[7]);
+	HAL_UART_Transmit_IT(uart_handler, p_trama, 9);
+
+	HAL_UART_Receive_IT(uart_handler, p_trama, MAX_RX);
+} //end cmd_posicion ()
+
+
+void cmd_home (uint8_t *p_trama){
+	if (p_trama[2] == READ){
+		p_trama[3] = posX_home >> 8;
+		p_trama[4] = posX_home & 0xFF;
+		p_trama[5] = posY_home >> 8;
+		p_trama[6] = posY_home & 0xFF;
+		p_trama[7] = direccion_home >> 8;
+		p_trama[8] = direccion_home & 0xFF;
+		p_trama[9] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2] + p_trama[3] + p_trama[4] + p_trama[5] + p_trama[6] + p_trama[7] + p_trama[8] + p_trama[9]);
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 10);
+	}else if (p_trama[2] == WRITE){
+		posX_home = (int16_t) (p_rx[4] + (p_rx[3] << 8));
+		posY_home = (int16_t) (p_rx[6] + (p_rx[5] << 8));
+		direccion_home = (int16_t) (p_rx[8] + (p_rx[7] << 8));
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 10);
+	}else{
+		p_trama[1] = CMD_ERROR;
+		p_trama[2] = ERROR_PARAM;
+		p_trama[3] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2]);
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 4);
+	} //ens if p_trama 2
+
+	HAL_UART_Receive_IT(uart_handler, p_trama, MAX_RX);
+} //end cmd_home
+
+void cmd_avance (uint8_t *p_trama){
+	if (modoFuncionamiento == MANUAL){
+		avance_cant += (uint16_t) (p_trama[3] + (p_trama[2] << 8));
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 5);
+	}else{
+		p_trama[1] = CMD_ERROR;
+		p_trama[2] = ERROR_DENEGADO_CMD;
+		p_trama[3] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2]);
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 4);
+	}
+	HAL_UART_Receive_IT(uart_handler, p_trama, MAX_RX);
+} //end cmd_avance ()
+
+
+void cmd_giroIzq (uint8_t *p_trama){
+	if (modoFuncionamiento == MANUAL){
+		giroIzq_cant += (uint16_t) (p_trama[3] + (p_trama[2] << 8));
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 5);
+	}else{
+		p_trama[1] = CMD_ERROR;
+		p_trama[2] = ERROR_DENEGADO_CMD;
+		p_trama[3] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2]);
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 4);
+	}
+	HAL_UART_Receive_IT(uart_handler, p_trama, MAX_RX);
+} //end cmd_giroIzq ()
+
+
+void cmd_giroDer (uint8_t *p_trama){
+	if (modoFuncionamiento == MANUAL){
+		giroDer_cant += (uint16_t) (p_trama[3] + (p_trama[2] << 8));
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 5);
+	}else{
+		p_trama[1] = CMD_ERROR;
+		p_trama[2] = ERROR_DENEGADO_CMD;
+		p_trama[3] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2]);
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 4);
+	}
+	HAL_UART_Receive_IT(uart_handler, p_trama, MAX_RX);
+} //end cmd_giroDer ()
+
+
+void cmd_retrocede (uint8_t *p_trama){
+	if (modoFuncionamiento == MANUAL){
+		retroceso_cant += (uint16_t) (p_trama[3] + (p_trama[2] << 8));
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 5);
+	}else{
+		p_trama[1] = CMD_ERROR;
+		p_trama[2] = ERROR_DENEGADO_CMD;
+		p_trama[3] = (uint8_t) (p_trama[0] + p_trama[1] + p_trama[2]);
+		HAL_UART_Transmit_IT(uart_handler, p_trama, 4);
+	}
+	HAL_UART_Receive_IT(uart_handler, p_trama, MAX_RX);
+} //end cmd_retrocede ()
 

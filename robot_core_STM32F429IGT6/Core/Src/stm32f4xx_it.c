@@ -23,6 +23,7 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stm32f4xx_ll_usart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -237,7 +238,9 @@ void UART7_IRQHandler(void)
   /* USER CODE END UART7_IRQn 0 */
   HAL_UART_IRQHandler(&huart7);
   /* USER CODE BEGIN UART7_IRQn 1 */
-
+  if (LL_USART_IsActiveFlag_IDLE(UART7)){
+	  HAL_UART_RxCpltCallback(&huart7);
+  }
   /* USER CODE END UART7_IRQn 1 */
 }
 

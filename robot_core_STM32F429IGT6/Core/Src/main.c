@@ -33,6 +33,7 @@
 #include "stdlib.h"
 #include "math.h"
 #include "stdio.h"
+#include "stm32f4xx_ll_usart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,10 +89,11 @@ float deltaX_dest;
 float deltaY_dest;
 
 //comunicacion//
-uint8_t rxUart[8];
+uint8_t rxUart[MAX_RX];
+uint8_t size_rxUart;
 uint8_t flag_cmd = 0;
-uint8_t txUart[8];
-uint8_t esp01Presente = 0;
+uint8_t txUart[MAX_TX];
+uint8_t flag_esp01Presente = 0;
 
 //modo de funcionamiento//
 T_MODO modoFuncionamiento= MANUAL;
@@ -112,7 +114,7 @@ int16_t distC = 0; //distancia relativa del centro en ranuras cada 210 ms.
 
 
 //mpu9265//
-
+uint8_t flag_IMUPresente = 0;
 uint8_t flag_muestreoIMU = 0;
 mpuData_t mpu9265;
 int32_t sum_magX, sum_magY; //para promediar
@@ -235,7 +237,7 @@ void mov_puntoAPunto (void);
 void modo_funcionamiento (void);
 void velocidades (int8_t, int8_t);
 void encoders_PWM (void);
-void lecturaIMU (void);
+void lecturaMPU9265 (void);
 void posicionamiento (void);
 void aceleracion (void);
 
@@ -245,6 +247,9 @@ void init_encoders(void);
 void init_controlMotores(void);
 void init_timersNecesarios(void);
 void init_comESP01(void);
+
+//punteros a funcion:
+void (*lecturaIMU) (void) = mpu9265_dummy;
 
 
 /* USER CODE END PFP */
@@ -307,21 +312,26 @@ int main(void)
   HAL_TIM_IC_Start_IT(&htim5, TIM_CHANNEL_3); //para capturar el eco (flanco ascendente).
   HAL_TIM_IC_Start_IT(&htim5, TIM_CHANNEL_4); //para capturar el eco (flanco descendente).
 
-  mpu9265_Init(&hi2c1);
+  HAL_Delay(200); //espera previa para garantizar el correcto encendido del MPU9265
+  if ( !mpu9265_Init(&hi2c1) ){
+	  flag_IMUPresente = 1;
+	  lecturaIMU = lecturaMPU9265;
+  }
 
   init_controlRxTx (&huart7);
-  HAL_Delay(5); //mas de 1ms para omitir la basura del arranque del ESP01
-  HAL_UART_Receive_IT(&huart7, rxUart, 8);
+  HAL_Delay(200); //mas de 1ms para omitir la basura del arranque del ESP01
+  LL_USART_EnableIT_IDLE(UART7);
+  HAL_UART_Receive_IT(&huart7, rxUart, MAX_RX);
 
-  if (!esp01Presente) {
+
+
+  if (!flag_esp01Presente) {
 	  modoFuncionamiento = AUTOMATICO;
   }else{
 	  modoFuncionamiento = MANUAL;
   }
-
-  //para pruebas (comentar cuando no se requiera):
-  modoFuncionamiento = CALIBRA_MAG;
-//  modoFñuncionamiento = MANUAL;
+  if (flag_IMUPresente != 0) modoFuncionamiento = CALIBRA_MAG;
+//  modoFuncionamiento = MANUAL;
 
   /* USER CODE END 2 */
 
@@ -349,7 +359,7 @@ int main(void)
 		  }
 
 		  if (periodo_pos > 21){
-			  posicionamiento();
+			  if (flag_IMUPresente != 0) posicionamiento();
 			  periodo_pos = 0;
 		  }
 		  if (periodo_SR04 > 21){
@@ -362,23 +372,24 @@ int main(void)
 		  if (ticks_PuntoAPunto != 0) ticks_PuntoAPunto--;
 
 		  //valida que la uart no tenga el buffer a medio llenar (trama desfasada)
-		  if (huart7.RxXferCount != 8){
-			  if (!flag_checkUart){
-				  flag_checkUart = 1;
-			  }else{
-				  HAL_UART_AbortReceive_IT(&huart7);
-				  flag_cmd = 0;
-				  HAL_UART_Receive_IT(&huart7, rxUart, 8);
-			  }
-		  }else{
-			  flag_checkUart = 0;
-		  } //end if huart7.RxXferCount
+//		  if (huart7.RxXferCount != 8){
+//			  if (!flag_checkUart){
+//				  flag_checkUart = 1;
+//			  }else{
+//				  HAL_UART_AbortReceive_IT(&huart7);
+//				  flag_cmd = 0;
+//				  HAL_UART_Receive_IT(&huart7, rxUart, 8);
+//			  }
+//		  }else{
+//			  flag_checkUart = 0;
+//		  } //end if huart7.RxXferCount
 
 	  } //fin if desbordeTIM7
 
 	  //comunicacion ESP01
 	  if (flag_cmd != 0){
-		  controlRxTxUART(rxUart);
+//		  controlRxTxUART(rxUart);
+		  procesaCmd(rxUart, size_rxUart);
 		  flag_cmd = 0;
 	  }
 
@@ -463,8 +474,15 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	flag_cmd = 1;
-}
+	if (LL_USART_IsActiveFlag_IDLE(UART7)){
+		uint8_t dummyRead = UART7->DR; //para deshabilitar el flag IDLE
+		(void) dummyRead;
+		size_rxUart = MAX_RX - huart7.RxXferCount;
+		HAL_UART_AbortReceive_IT(&huart7);
+		flag_cmd = 1;
+	} //end if IDLE
+
+} //end HAL_UART_RxCpltCallback ()
 
 
 void sensores (void){
@@ -1187,7 +1205,7 @@ void encoders_PWM (void){
 } //fin encoders_PWM()
 
 
-void lecturaIMU (void){
+void lecturaMPU9265 (void){
 	//magnetometro
 	mpu9265_Read_Magnet(&mpu9265);
 	raw_magX = (float) (mpu9265.Magnet_X_RAW); //media empirica +359.0
